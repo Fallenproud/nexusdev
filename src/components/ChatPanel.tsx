@@ -73,7 +73,7 @@ export function ChatPanel() {
                   <Badge
                     key={prompt}
                     variant="secondary"
-                    className="cursor-pointer hover:bg-primary/20 transition-colors"
+                    className="cursor-pointer hover:bg-primary/20 transition-all transform hover:-translate-y-0.5"
                     onClick={() => handleExamplePromptClick(prompt)}
                   >
                     {prompt}
