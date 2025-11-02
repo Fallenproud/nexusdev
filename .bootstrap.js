@@ -82,7 +82,8 @@ function runSetupCommands() {
     "bun add react-syntax-highlighter@^15.5.0",
     "bun add @types/react-syntax-highlighter@^15.5.13",
     "bun add mermaid@^10.9.1",
-    "bun add mermaid"
+    "bun add mermaid",
+    "bun install agents"
 ];
     
     if (commands.length === 0) {
