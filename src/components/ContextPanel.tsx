@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNexusStore } from '@/hooks/useNexusStore';
-import { Badge } from '@/components/ui/badge';
-import { Info, Wrench, Calendar, Clock, Hash } from 'lucide-react';
+import { Info, Wrench, Calendar, Clock, Hash, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-// Mocked tool definitions based on worker/tools.ts
-const availableTools = [
-  { name: 'get_weather', description: 'Get current weather information for a location.' },
-  { name: 'web_search', description: 'Search the web or fetch content from a URL.' },
-];
+import { Skeleton } from '@/components/ui/skeleton';
 export function ContextPanel() {
   const activeSessionId = useNexusStore((state) => state.activeSessionId);
   const sessions = useNexusStore((state) => state.sessions);
+  const availableTools = useNexusStore((state) => state.availableTools);
+  const isFetchingTools = useNexusStore((state) => state.isFetchingTools);
+  const fetchAvailableTools = useNexusStore((state) => state.fetchAvailableTools);
   const activeSession = sessions.find((s) => s.id === activeSessionId);
+  useEffect(() => {
+    fetchAvailableTools();
+  }, [fetchAvailableTools]);
   return (
     <div className="flex flex-col h-full bg-muted/30 p-3">
       <header className="flex items-center gap-2 pb-3 mb-3 border-b">
@@ -52,15 +53,22 @@ export function ContextPanel() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Available Tools</h3>
             <div className="space-y-3">
-              {availableTools.map((tool) => (
-                <div key={tool.name} className="p-3 rounded-md bg-background/50 border">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Wrench className="size-4 text-indigo" />
-                    <p className="font-mono text-sm font-medium text-foreground">{tool.name}</p>
+              {isFetchingTools ? (
+                <>
+                  <Skeleton className="h-16 w-full rounded-md" />
+                  <Skeleton className="h-16 w-full rounded-md" />
+                </>
+              ) : (
+                availableTools.map((tool) => (
+                  <div key={tool.function.name} className="p-3 rounded-md bg-background/50 border">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Wrench className="size-4 text-indigo" />
+                      <p className="font-mono text-sm font-medium text-foreground">{tool.function.name}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{tool.function.description}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">{tool.description}</p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

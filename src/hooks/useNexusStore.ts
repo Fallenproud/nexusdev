@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { toast } from 'sonner';
 import { chatService } from '@/lib/chat';
-import type { SessionInfo, Message } from '../../worker/types';
+import type { SessionInfo, Message, ToolDefinition } from '../../worker/types';
 interface NexusState {
   sessions: SessionInfo[];
   activeSessionId: string | null;
@@ -11,15 +11,19 @@ interface NexusState {
   isLoading: boolean;
   isProcessing: boolean;
   model: string;
+  availableTools: ToolDefinition[];
+  isFetchingTools: boolean;
 }
 interface NexusActions {
   fetchSessions: () => Promise<void>;
   createSession: (firstMessage?: string) => Promise<void>;
   switchSession: (sessionId: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
+  updateSessionTitle: (sessionId: string, title: string) => Promise<void>;
   fetchMessages: () => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   setModel: (model: string) => Promise<void>;
+  fetchAvailableTools: () => Promise<void>;
 }
 export const useNexusStore = create<NexusState & NexusActions>()(
   immer((set, get) => ({
@@ -30,6 +34,8 @@ export const useNexusStore = create<NexusState & NexusActions>()(
     isLoading: true,
     isProcessing: false,
     model: 'google-ai-studio/gemini-2.5-flash',
+    availableTools: [],
+    isFetchingTools: false,
     fetchSessions: async () => {
       set({ isLoading: true });
       const res = await chatService.listSessions();
@@ -76,6 +82,24 @@ export const useNexusStore = create<NexusState & NexusActions>()(
         }
       } else {
         toast.error('Failed to delete Nexus.');
+      }
+    },
+    updateSessionTitle: async (sessionId: string, title: string) => {
+      const originalSessions = get().sessions;
+      const sessionToUpdate = originalSessions.find(s => s.id === sessionId);
+      if (!sessionToUpdate || sessionToUpdate.title === title) return;
+      // Optimistic update
+      set(state => {
+        const session = state.sessions.find(s => s.id === sessionId);
+        if (session) session.title = title;
+      });
+      const res = await chatService.updateSessionTitle(sessionId, title);
+      if (res.success) {
+        toast.success('Nexus title updated.');
+      } else {
+        toast.error('Failed to update title.');
+        // Revert on failure
+        set({ sessions: originalSessions });
       }
     },
     fetchMessages: async () => {
@@ -129,6 +153,16 @@ export const useNexusStore = create<NexusState & NexusActions>()(
       } else {
         toast.error('Failed to update model.');
       }
+    },
+    fetchAvailableTools: async () => {
+      set({ isFetchingTools: true });
+      const res = await chatService.getAvailableTools();
+      if (res.success && res.data) {
+        set({ availableTools: res.data });
+      } else {
+        toast.error('Failed to fetch available tools.');
+      }
+      set({ isFetchingTools: false });
     },
   }))
 );
