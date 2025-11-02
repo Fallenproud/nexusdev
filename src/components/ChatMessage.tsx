@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bot, User, Wrench } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import type { Message } from '../../worker/types';
 import { CodeBlock } from './CodeBlock';
-import { ToolCallBadge } from './ToolCallBadge';
+import { ToolCallResult } from './ToolCallResult';
 interface ChatMessageProps {
   message: Message;
 }
@@ -27,7 +27,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       )}
       <div
         className={cn(
-          'max-w-md lg:max-w-2xl rounded-2xl p-4 text-sm',
+          'flex flex-col max-w-md lg:max-w-2xl rounded-2xl p-4 text-sm',
           isUser
             ? 'bg-primary text-primary-foreground rounded-br-lg'
             : 'bg-muted text-foreground rounded-bl-lg'
@@ -48,16 +48,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
           {message.content}
         </ReactMarkdown>
         {message.toolCalls && message.toolCalls.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-current/20">
-            <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-              <Wrench className="size-3" />
-              <span>Tools used:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {message.toolCalls.map((tool, idx) => (
-                <ToolCallBadge key={tool.id || idx} toolCall={tool} />
-              ))}
-            </div>
+          <div className="mt-3 pt-3 border-t border-current/20 space-y-3">
+            {message.toolCalls.map((tool, idx) => (
+              <ToolCallResult key={tool.id || idx} toolCall={tool} />
+            ))}
           </div>
         )}
       </div>

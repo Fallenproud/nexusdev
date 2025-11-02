@@ -7,7 +7,11 @@ import { Plus, MessageSquare, Trash2, Edit3, Check, X, Bot } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Logo } from './Logo';
-export function AetherSidebar() {
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+interface AetherSidebarProps {
+  isCollapsed: boolean;
+}
+export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
   const sessions = useAetherStore((state) => state.sessions);
   const activeSessionId = useAetherStore((state) => state.activeSessionId);
   const { createSession, switchSession, deleteSession, updateSessionTitle } = useAetherStore(
@@ -29,6 +33,44 @@ export function AetherSidebar() {
       handleCancelEdit();
     }
   };
+  if (isCollapsed) {
+    return (
+      <TooltipProvider delayDuration={0}>
+        <div className="flex flex-col h-full bg-muted/30 p-2 items-center">
+          <header className="pb-3 mb-3 border-b border-border/50">
+            <Logo />
+          </header>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" className="w-9 h-9 mb-3" onClick={() => createSession()}>
+                <Plus className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">New Session</TooltipContent>
+          </Tooltip>
+          <ScrollArea className="flex-1 w-full">
+            <div className="space-y-1">
+              {sessions.map((session) => (
+                <Tooltip key={session.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={activeSessionId === session.id ? 'secondary' : 'ghost'}
+                      size="icon"
+                      className="w-9 h-9"
+                      onClick={() => switchSession(session.id)}
+                    >
+                      <MessageSquare className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{session.title}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      </TooltipProvider>
+    );
+  }
   return (
     <div className="flex flex-col h-full bg-muted/30 p-3">
       <header className="pb-3 mb-3 border-b">

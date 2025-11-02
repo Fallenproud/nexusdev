@@ -1,11 +1,11 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 interface LogoProps {
   className?: string;
 }
 export function Logo({ className }: LogoProps) {
-  const svgVariants = {
+  const svgVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -15,14 +15,14 @@ export function Logo({ className }: LogoProps) {
       },
     },
   };
-  const pathVariants = {
+  const pathVariants: Variants = {
     hidden: { pathLength: 0, opacity: 0 },
     visible: {
       pathLength: 1,
       opacity: 1,
       transition: {
         duration: 1.5,
-        ease: 'easeInOut',
+        ease: [0.42, 0, 0.58, 1],
       },
     },
   };
