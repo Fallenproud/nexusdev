@@ -3,7 +3,8 @@ import { useAetherStore } from '@/hooks/useAetherStore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CodeBlock } from './CodeBlock';
 import ReactMarkdown from 'react-markdown';
-import { FileText, Code, Eye } from 'lucide-react';
+import { FileText, Code, Eye, GitMerge } from 'lucide-react';
+import { MermaidDiagram } from './MermaidDiagram';
 export function CanvasPanel() {
   const canvasContent = useAetherStore((state) => state.canvasContent);
   const renderContent = () => {
@@ -15,7 +16,7 @@ export function CanvasPanel() {
           <p className="max-w-md text-sm">
             Complex outputs from the AI, like documents or code snippets, will appear here.
           </p>
-          <p className="text-xs mt-2">Try asking the AI to "draft a project plan in markdown".</p>
+          <p className="text-xs mt-2">Try asking the AI to "generate a flowchart for a user login process".</p>
         </div>
       );
     }
@@ -39,6 +40,8 @@ export function CanvasPanel() {
         );
       case 'code':
         return <CodeBlock>{canvasContent.content}</CodeBlock>;
+      case 'mermaid':
+        return <MermaidDiagram chart={canvasContent.content} />;
       default:
         return (
           <div className="p-4">
@@ -59,6 +62,8 @@ export function CanvasPanel() {
         return { icon: <FileText className="size-5 text-muted-foreground" />, title: 'Markdown Document' };
       case 'code':
         return { icon: <Code className="size-5 text-muted-foreground" />, title: 'Code Snippet' };
+      case 'mermaid':
+        return { icon: <GitMerge className="size-5 text-muted-foreground" />, title: 'Mermaid Diagram' };
       default:
         return { icon: <FileText className="size-5 text-muted-foreground" />, title: 'Canvas Content' };
     }
