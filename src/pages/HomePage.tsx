@@ -3,7 +3,6 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { AetherSidebar } from '@/components/AetherSidebar';
 import { ChatPanel } from '@/components/ChatPanel';
-import { ContextPanel } from '@/components/ContextPanel';
 import { useAetherStore } from '@/hooks/useAetherStore';
 import { Button } from '@/components/ui/button';
 import { PanelLeftClose, PanelRightClose, PanelLeftOpen, Menu, Info } from 'lucide-react';
@@ -11,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/Logo';
+import { RightPanelTabs } from '@/components/RightPanelTabs';
 export function HomePage() {
   const fetchSessions = useAetherStore((state) => state.actions.fetchSessions);
   const switchSession = useAetherStore((state) => state.actions.switchSession);
@@ -76,7 +76,7 @@ export function HomePage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="p-0 w-full max-w-xs">
-                <ContextPanel />
+                <RightPanelTabs />
               </SheetContent>
             </Sheet>
           </header>
@@ -146,7 +146,7 @@ export function HomePage() {
             onCollapse={() => setPanelCollapseState((prev) => ({ ...prev, context: true }))}
             onExpand={() => setPanelCollapseState((prev) => ({ ...prev, context: false }))}
           >
-            <ContextPanel />
+            <RightPanelTabs />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

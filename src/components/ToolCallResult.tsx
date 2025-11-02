@@ -15,6 +15,7 @@ const getToolInfo = (toolCall: ToolCall) => {
   let icon = <Wrench className="size-4" />;
   if (toolCall.name.includes('search')) icon = <Search className="size-4" />;
   if (toolCall.name.includes('weather')) icon = <Thermometer className="size-4" />;
+  if (toolCall.name.includes('canvas')) icon = <FileText className="size-4" />;
   const statusIcon = isError ? (
     <XCircle className="size-4 text-destructive" />
   ) : (
@@ -24,6 +25,18 @@ const getToolInfo = (toolCall: ToolCall) => {
 };
 export function ToolCallResult({ toolCall }: ToolCallResultProps) {
   const { isError, icon, statusIcon, result } = getToolInfo(toolCall);
+  if (toolCall.name === 'display_on_canvas') {
+    return (
+      <div className="p-3 rounded-md border bg-background/50 flex items-center gap-2 text-xs font-semibold">
+        {statusIcon}
+        {icon}
+        <span className="font-mono">{toolCall.name}</span>
+        <Badge variant="secondary" className="ml-auto text-xs font-normal">
+          Content displayed on Canvas
+        </Badge>
+      </div>
+    );
+  }
   const renderResult = () => {
     if (!result) {
       return <p className="text-xs text-muted-foreground">No result returned.</p>;

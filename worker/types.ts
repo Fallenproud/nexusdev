@@ -11,6 +11,11 @@ export interface MCPResult {
 export interface ErrorResult {
   error: string;
 }
+export interface CanvasContent {
+  contentType: string;
+  content: string;
+}
+export type ToolResult = WeatherResult | { content: string } | ErrorResult | CanvasContent;
 export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;

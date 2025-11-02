@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { toast } from 'sonner';
 import { chatService } from '@/lib/chat';
-import type { Message, SessionInfo, ToolDefinition } from '../../worker/types';
+import type { Message, SessionInfo, ToolDefinition, CanvasContent } from '../../worker/types';
 interface AetherState {
   sessions: SessionInfo[];
   activeSessionId: string | null;
@@ -13,6 +13,7 @@ interface AetherState {
   availableTools: ToolDefinition[];
   isFetchingTools: boolean;
   isFetchingSessions: boolean;
+  canvasContent: CanvasContent | null;
   actions: {
     fetchSessions: () => Promise<void>;
     switchSession: (sessionId: string) => Promise<void>;
@@ -22,6 +23,7 @@ interface AetherState {
     sendMessage: (message: string) => Promise<void>;
     setModel: (model: string) => Promise<void>;
     fetchAvailableTools: () => Promise<void>;
+    setCanvasContent: (content: CanvasContent | null) => void;
   };
 }
 const useAetherStoreImpl = create<AetherState>()(
@@ -35,6 +37,7 @@ const useAetherStoreImpl = create<AetherState>()(
     availableTools: [],
     isFetchingTools: false,
     isFetchingSessions: false,
+    canvasContent: null,
     actions: {
       fetchSessions: async () => {
         set({ isFetchingSessions: true });
@@ -56,6 +59,7 @@ const useAetherStoreImpl = create<AetherState>()(
           state.streamingMessage = '';
           state.isProcessing = true;
           state.isFetchingSessions = true;
+          state.canvasContent = null; // Reset canvas on session switch
         });
         chatService.switchSession(sessionId);
         const response = await chatService.getMessages();
@@ -138,6 +142,16 @@ const useAetherStoreImpl = create<AetherState>()(
           set((state) => {
             state.messages = response.data!.messages;
           });
+          // Check for canvas tool call in the last message
+          const lastMessage = response.data.messages[response.data.messages.length - 1];
+          if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
+            const canvasToolCall = lastMessage.toolCalls.find(
+              (tc) => tc.name === 'display_on_canvas'
+            );
+            if (canvasToolCall && canvasToolCall.result) {
+              get().actions.setCanvasContent(canvasToolCall.result as CanvasContent);
+            }
+          }
         }
         set((state) => {
           state.isProcessing = false;
@@ -164,6 +178,9 @@ const useAetherStoreImpl = create<AetherState>()(
           toast.error('Failed to fetch available tools.');
         }
         set({ isFetchingTools: false });
+      },
+      setCanvasContent: (content) => {
+        set({ canvasContent: content });
       },
     },
   }))
