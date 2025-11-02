@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import type { Message } from '../../worker/types';
 import { CodeBlock } from './CodeBlock';
 import { ToolCallBadge } from './ToolCallBadge';
+import { CodeProps } from 'react-markdown/lib/ast-to-react';
 interface ChatMessageProps {
   message: Message;
 }
@@ -36,7 +37,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <ReactMarkdown
           className="prose prose-sm dark:prose-invert prose-p:whitespace-pre-wrap prose-p:my-0 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 max-w-none"
           components={{
-            code({ node, inline, className, children, ...props }) {
+            code({ node, className, children, ...props }: CodeProps) {
+              const { inline } = props as { inline?: boolean };
               return (
                 <CodeBlock inline={inline} className={className}>
                   {String(children)}

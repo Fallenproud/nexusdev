@@ -8,6 +8,7 @@ import { ChatMessage } from './ChatMessage';
 import { ModelSelector } from './ModelSelector';
 import { Toaster } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 export function ChatPanel() {
   const messages = useNexusStore((state) => state.messages);
   const streamingMessage = useNexusStore((state) => state.streamingMessage);
@@ -17,6 +18,12 @@ export function ChatPanel() {
   const [input, setInput] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const examplePrompts = [
+    'Plan a new feature for a SaaS app',
+    'Write a React component for a login form',
+    'Explain the difference between REST and GraphQL',
+    'Draft an email to my team about a deadline',
+  ];
   useLayoutEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -44,6 +51,10 @@ export function ChatPanel() {
       handleSubmit(e);
     }
   };
+  const handleExamplePromptClick = (prompt: string) => {
+    setInput(prompt);
+    textareaRef.current?.focus();
+  };
   return (
     <div className="flex flex-col h-full bg-muted/50 rounded-lg border">
       <header className="flex items-center justify-between p-3 border-b">
@@ -55,8 +66,20 @@ export function ChatPanel() {
           {messages.length === 0 && !isProcessing && (
             <div className="text-center text-muted-foreground py-16 flex flex-col items-center">
               <Bot className="size-12 mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">Welcome to NexusDev</h3>
-              <p className="max-w-md">Start a conversation to begin planning, architecting, and building your next project.</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Welcome to NexusDev</h3>
+              <p className="max-w-md mb-6">Start a conversation or try one of these examples to begin.</p>
+              <div className="flex flex-wrap justify-center gap-2 max-w-md">
+                {examplePrompts.map((prompt) => (
+                  <Badge
+                    key={prompt}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-primary/20 transition-colors"
+                    onClick={() => handleExamplePromptClick(prompt)}
+                  >
+                    {prompt}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
           {messages.map((msg) => (

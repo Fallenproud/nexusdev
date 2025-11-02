@@ -1,15 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import type { PanelRef } from 'react-resizable-panels';
 import { NexusSidebar } from '@/components/NexusSidebar';
 import { ChatPanel } from '@/components/ChatPanel';
 import { ContextPanel } from '@/components/ContextPanel';
 import { useNexusStore } from '@/hooks/useNexusStore';
+import { Button } from '@/components/ui/button';
+import { PanelLeftClose, PanelRightClose } from 'lucide-react';
+import { cn } from '@/lib/utils';
 export function HomePage() {
   const fetchSessions = useNexusStore((state) => state.fetchSessions);
   const switchSession = useNexusStore((state) => state.switchSession);
   const sessions = useNexusStore((state) => state.sessions);
   const activeSessionId = useNexusStore((state) => state.activeSessionId);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const contextPanelRef = useRef<PanelRef>(null);
   // This effect runs once on mount to fetch the initial list of sessions.
   useEffect(() => {
     fetchSessions();
@@ -22,6 +28,13 @@ export function HomePage() {
       switchSession(sessions[0].id);
     }
   }, [sessions, activeSessionId, switchSession]);
+  const handleCollapseToggle = () => {
+    if (isCollapsed) {
+      contextPanelRef.current?.expand();
+    } else {
+      contextPanelRef.current?.collapse();
+    }
+  };
   return (
     <AppLayout>
       <div className="h-screen w-screen p-4 overflow-hidden">
@@ -37,8 +50,29 @@ export function HomePage() {
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={30} collapsible={true} collapsedSize={0}>
+          <ResizableHandle withHandle className="relative">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'absolute top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background border',
+                isCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-1/2 translate-x-1/2'
+              )}
+              onClick={handleCollapseToggle}
+            >
+              {isCollapsed ? <PanelLeftClose className="size-4" /> : <PanelRightClose className="size-4" />}
+            </Button>
+          </ResizableHandle>
+          <ResizablePanel
+            ref={contextPanelRef}
+            defaultSize={25}
+            minSize={20}
+            maxSize={30}
+            collapsible={true}
+            collapsedSize={0}
+            onCollapse={() => setIsCollapsed(true)}
+            onExpand={() => setIsCollapsed(false)}
+          >
             <ContextPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
