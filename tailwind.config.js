@@ -207,7 +207,7 @@ export default {
   					transform: 'translateY(0px)'
   				},
   				'50%': {
-  					transform: 'translateY(-10px)'
+  					transform: 'translateY(-5px)'
   				}
   			},
   			'accordion-down': {
@@ -246,7 +246,7 @@ export default {
   			'scale-in': 'scale-in 0.3s ease-out',
   			shimmer: 'shimmer 2s infinite',
   			glow: 'glow 2s ease-in-out infinite',
-  			float: 'float 3s ease-in-out infinite',
+  			float: 'float 4s ease-in-out infinite',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
         'background-pan': 'background-pan 15s ease infinite',

@@ -22,7 +22,7 @@ export function Logo({ className }: LogoProps) {
       opacity: 1,
       transition: {
         duration: 1.5,
-        ease: [0.42, 0, 0.58, 1],
+        ease: 'easeInOut',
       },
     },
   };

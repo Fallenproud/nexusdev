@@ -62,7 +62,7 @@ export function ContextPanel() {
                 availableTools.map((tool) => (
                   <div key={tool.function.name} className="p-3 rounded-md bg-background/50 border">
                     <div className="flex items-center gap-2 mb-1">
-                      <Wrench className="size-4 text-primary animate-pulse" />
+                      <Wrench className="size-4 text-primary animate-float" />
                       <p className="font-mono text-sm font-medium text-foreground">{tool.function.name}</p>
                     </div>
                     <p className="text-xs text-muted-foreground">{tool.function.description}</p>
