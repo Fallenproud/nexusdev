@@ -80,7 +80,8 @@ function runSetupCommands() {
     const commands = [
     "bun add react-markdown@^9.0.1",
     "bun add react-syntax-highlighter@^15.5.0",
-    "bun add @types/react-syntax-highlighter@^15.5.13"
+    "bun add @types/react-syntax-highlighter@^15.5.13",
+    "bun add mermaid@^10.9.1"
 ];
     
     if (commands.length === 0) {
