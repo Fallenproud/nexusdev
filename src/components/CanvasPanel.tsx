@@ -19,7 +19,7 @@ export function CanvasPanel() {
         </div>
       );
     }
-    switch (canvasContent.type) {
+    switch (canvasContent.contentType) {
       case 'markdown':
         return (
           <ReactMarkdown
@@ -42,7 +42,7 @@ export function CanvasPanel() {
       default:
         return (
           <div className="p-4">
-            <h4 className="font-semibold mb-2">Unsupported Content Type: {canvasContent.type}</h4>
+            <h4 className="font-semibold mb-2">Unsupported Content Type: {canvasContent.contentType}</h4>
             <pre className="text-xs bg-muted p-2 rounded-md whitespace-pre-wrap break-all">
               {canvasContent.content}
             </pre>
@@ -54,7 +54,7 @@ export function CanvasPanel() {
     if (!canvasContent) {
       return { icon: <FileText className="size-5 text-muted-foreground" />, title: 'Canvas' };
     }
-    switch (canvasContent.type) {
+    switch (canvasContent.contentType) {
       case 'markdown':
         return { icon: <FileText className="size-5 text-muted-foreground" />, title: 'Markdown Document' };
       case 'code':

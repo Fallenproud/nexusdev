@@ -1,5 +1,6 @@
 import type { WeatherResult, ErrorResult, CanvasContent } from './types';
 import { mcpManager } from './mcp-client';
+import type { ChatHandler } from './chat';
 export type ToolResult = WeatherResult | { content: string } | ErrorResult | CanvasContent;
 interface SerpApiResponse {
   knowledge_graph?: { title?: string; description?: string; source?: { link?: string } };
@@ -45,10 +46,24 @@ const customTools = [
       parameters: {
         type: 'object',
         properties: {
-          contentType: { type: 'string', description: 'The type of content to display. e.g., "markdown", "code".' },
+          contentType: { type: 'string', description: 'The type of content to display. e.g., "markdown", "code", "mermaid".' },
           content: { type: 'string', description: 'The actual content to display.' }
         },
         required: ['contentType', 'content']
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'generate_diagram',
+      description: 'Generate a Mermaid syntax diagram (e.g., flowchart, sequence diagram) based on a description and display it on the canvas.',
+      parameters: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'A detailed description of the diagram to generate.' },
+        },
+        required: ['description']
       }
     }
   }
@@ -150,7 +165,7 @@ async function fetchWebContent(url: string): Promise<string> {
     throw new Error(`Failed to fetch: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-export async function executeTool(name: string, args: Record<string, unknown>): Promise<ToolResult> {
+export async function executeTool(name: string, args: Record<string, unknown>, chatHandler: ChatHandler): Promise<ToolResult> {
   try {
     switch (name) {
       case 'get_weather':
@@ -177,6 +192,31 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
           contentType: args.contentType as string,
           content: args.content as string
         };
+      case 'generate_diagram': {
+        const description = args.description as string;
+        if (!description) {
+          return { error: 'Diagram description is required.' };
+        }
+        const completion = await chatHandler.client.chat.completions.create({
+          model: chatHandler.model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a Mermaid syntax expert. Generate only the Mermaid code for the given description. Do not include any explanations or markdown fences like ```mermaid.',
+            },
+            { role: 'user', content: `Generate a Mermaid diagram for: ${description}` },
+          ],
+          max_tokens: 2000,
+        });
+        const mermaidSyntax = completion.choices[0]?.message?.content?.trim();
+        if (!mermaidSyntax) {
+          return { error: 'Failed to generate diagram syntax.' };
+        }
+        return {
+          contentType: 'mermaid',
+          content: mermaidSyntax,
+        };
+      }
       default: {
         const content = await mcpManager.executeTool(name, args);
         return { content };
