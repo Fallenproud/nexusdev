@@ -125,7 +125,7 @@ export function ChatPanel({ showHeader = true }: ChatPanelProps) {
           <Button
             type="submit"
             size="icon"
-            className="absolute right-3 top-1/2 -translate-y-1/2"
+            className="absolute right-2.5 bottom-2.5 h-8 w-8"
             disabled={!input.trim() || isProcessing || !activeSessionId}
           >
             {isProcessing ? (
