@@ -13,8 +13,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      layout
+      initial={{ opacity: 0, y: 5, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -5, scale: 0.98 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className={cn('flex items-start gap-3 w-full', isUser ? 'justify-end' : 'justify-start')}
     >

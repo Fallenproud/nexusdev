@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { Send, Bot, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +7,7 @@ import { useNexusStore } from '@/hooks/useNexusStore';
 import { ChatMessage } from './ChatMessage';
 import { ModelSelector } from './ModelSelector';
 import { Toaster } from '@/components/ui/sonner';
+import { cn } from '@/lib/utils';
 export function ChatPanel() {
   const messages = useNexusStore((state) => state.messages);
   const streamingMessage = useNexusStore((state) => state.streamingMessage);
@@ -15,6 +16,14 @@ export function ChatPanel() {
   const activeSessionId = useNexusStore((state) => state.activeSessionId);
   const [input, setInput] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [input]);
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
@@ -66,13 +75,20 @@ export function ChatPanel() {
         </div>
       </ScrollArea>
       <footer className="p-4 border-t">
-        <form onSubmit={handleSubmit} className="relative">
+        <form
+          onSubmit={handleSubmit}
+          className={cn(
+            'relative rounded-lg border border-border transition-shadow',
+            'focus-within:border-primary focus-within:shadow-primary focus-within:animate-glow-border'
+          )}
+        >
           <Textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask NexusDev to do something..."
-            className="w-full min-h-[48px] max-h-48 resize-none rounded-lg pr-14 pl-4 py-3 text-base bg-background"
+            className="w-full min-h-[48px] max-h-48 resize-none rounded-lg pr-14 pl-4 py-3 text-base bg-background border-none focus-visible:ring-0 focus-visible:ring-offset-0"
             rows={1}
             disabled={isProcessing || !activeSessionId}
           />

@@ -229,6 +229,14 @@ export default {
           '0%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
           '100%': { backgroundPosition: '0% 50%' },
+        },
+        'grid-pan': {
+          '0%': { backgroundPosition: '0% 0%' },
+          '100%': { backgroundPosition: '40px 40px' },
+        },
+        'glow-border': {
+          '0%, 100%': { boxShadow: '0 0 0 2px hsl(var(--primary) / 0.2)' },
+          '50%': { boxShadow: '0 0 0 2px hsl(var(--primary) / 0.5)' },
         }
   		},
   		animation: {
@@ -241,6 +249,8 @@ export default {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
         'background-pan': 'background-pan 15s ease infinite',
+        'grid-pan': 'grid-pan 30s linear infinite',
+        'glow-border': 'glow-border 2s ease-in-out infinite',
   		},
   		backgroundImage: {
   			'gradient-rainbow': 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',

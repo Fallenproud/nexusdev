@@ -79,6 +79,31 @@
     );
     background-size: 400% 400%;
     animation: background-pan 15s ease infinite;
+    z-index: -2;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: repeating-linear-gradient(
+        0deg,
+        hsl(var(--border) / 0.15),
+        hsl(var(--border) / 0.15) 1px,
+        transparent 1px,
+        transparent 40px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        hsl(var(--border) / 0.15),
+        hsl(var(--border) / 0.15) 1px,
+        transparent 1px,
+        transparent 40px
+      );
+    background-size: 40px 40px;
+    animation: grid-pan 30s linear infinite;
     z-index: -1;
   }
   /* Custom Scrollbar */
