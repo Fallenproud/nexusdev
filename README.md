@@ -1,5 +1,5 @@
 # AetherCode
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Fallenproud/nexusdev)
 AetherCode is a visually stunning, AI-powered 'vibe-coding' platform designed to streamline the entire development lifecycle through an elegant and intuitive chat-based interface. It reimagines the developer experience by focusing on creative flow and intelligent automation.
 The application is built around a powerful AI agent that users interact with in natural language to plan, architect, and implement software projects. The core of the application is a multi-panel workspace: a sidebar for managing distinct projects, a central conversational UI for interacting with the AI, and a context-aware panel for viewing tool outputs, file structures, or workflow statuses. Each project is a persistent, stateful conversation, allowing developers to build complex applications iteratively.
 ## ✨ Key Features
@@ -72,7 +72,7 @@ Deploying AetherCode is a straightforward process using the Wrangler CLI.
     ```
     Follow the prompts to securely add your credentials.
 Alternatively, deploy with a single click:
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Fallenproud/nexusdev)
 ## 📂 Project Structure
 *   `src/`: Contains all the frontend React application code, including pages, components, hooks, and utility functions.
 *   `worker/`: Contains all the backend Cloudflare Worker code, including the Hono API routes, Durable Object classes (`ChatAgent`, `AppController`), and AI integration logic.
