@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, Wrench } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import type { Message } from '../../worker/types';
 import { CodeBlock } from './CodeBlock';
+import { ToolCallBadge } from './ToolCallBadge';
 interface ChatMessageProps {
   message: Message;
 }
@@ -36,7 +37,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             code({ node, inline, className, children, ...props }) {
               return (
                 <CodeBlock inline={inline} className={className} {...props}>
-                  {children}
+                  {String(children)}
                 </CodeBlock>
               );
             },
@@ -44,6 +45,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
         >
           {message.content}
         </ReactMarkdown>
+        {message.toolCalls && message.toolCalls.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-current/20">
+            <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+              <Wrench className="size-3" />
+              <span>Tools used:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {message.toolCalls.map((tool, idx) => (
+                <ToolCallBadge key={tool.id || idx} toolCall={tool} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       {isUser && (
         <div className="flex-shrink-0 size-8 rounded-full bg-secondary flex items-center justify-center">

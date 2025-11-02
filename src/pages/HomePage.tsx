@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { NexusSidebar } from '@/components/NexusSidebar';
 import { ChatPanel } from '@/components/ChatPanel';
+import { ContextPanel } from '@/components/ContextPanel';
 import { useNexusStore } from '@/hooks/useNexusStore';
 export function HomePage() {
   const fetchSessions = useNexusStore((state) => state.fetchSessions);
@@ -25,12 +26,20 @@ export function HomePage() {
     <AppLayout>
       <div className="h-screen w-screen p-4">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full rounded-lg border">
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={25}>
-            <NexusSidebar />
+          <ResizablePanel defaultSize={75} minSize={50}>
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
+                <NexusSidebar />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={75}>
+                <ChatPanel />
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={80}>
-            <ChatPanel />
+          <ResizablePanel defaultSize={25} minSize={20} maxSize={30} collapsible={true} collapsedSize={0}>
+            <ContextPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
