@@ -3,22 +3,39 @@ import { useAetherStore } from '@/hooks/useAetherStore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, MessageSquare, Trash2, Edit3, Check, X, Bot } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Edit3, Check, X, Bot, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Logo } from './Logo';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ModelSelector } from './ModelSelector';
-import { Separator } from './ui/separator';
+import { toast } from 'sonner';
+import type { Message } from '../../worker/types';
 interface AetherSidebarProps {
   isCollapsed: boolean;
   onSessionChange?: () => void;
   showModelSelector?: boolean;
 }
+const formatMessageForExport = (message: Message): string => {
+  const author = message.role === 'user' ? 'You' : 'AetherCode';
+  const timestamp = new Date(message.timestamp).toLocaleString();
+  let content = message.content;
+  if (message.toolCalls && message.toolCalls.length > 0) {
+    const toolDetails = message.toolCalls
+      .map((tc) => {
+        const args = JSON.stringify(tc.arguments, null, 2);
+        return `\n<details><summary>Tool Call: \`${tc.name}\`</summary>\n\n\`\`\`json\n${args}\n\`\`\`\n\n</details>`;
+      })
+      .join('');
+    content += toolDetails;
+  }
+  return `**${author}** (${timestamp}):\n\n${content}\n\n---\n\n`;
+};
 export function AetherSidebar({ isCollapsed, onSessionChange, showModelSelector }: AetherSidebarProps) {
   const sessions = useAetherStore((state) => state.sessions);
   const activeSessionId = useAetherStore((state) => state.activeSessionId);
+  const messages = useAetherStore((state) => state.messages);
   const isFetchingSessions = useAetherStore((state) => state.isFetchingSessions);
   const { createSession, switchSession, deleteSession, updateSessionTitle } = useAetherStore(
     (state) => state.actions
@@ -42,6 +59,26 @@ export function AetherSidebar({ isCollapsed, onSessionChange, showModelSelector 
       updateSessionTitle(sessionId, newTitle.trim());
       handleCancelEdit();
     }
+  };
+  const handleExportChat = () => {
+    const activeSession = sessions.find((s) => s.id === activeSessionId);
+    if (!activeSession || messages.length === 0) {
+      toast.error('No active chat to export.');
+      return;
+    }
+    const markdownContent = `# Chat with AetherCode: ${activeSession.title}\n\n${messages
+      .map(formatMessageForExport)
+      .join('')}`;
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeSession.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Chat exported successfully.');
   };
   if (isCollapsed) {
     return (
@@ -85,6 +122,16 @@ export function AetherSidebar({ isCollapsed, onSessionChange, showModelSelector 
               )}
             </div>
           </ScrollArea>
+          <footer className="mt-auto pt-2 border-t border-border/50">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleExportChat}>
+                  <Download className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Export Chat</TooltipContent>
+            </Tooltip>
+          </footer>
         </div>
       </TooltipProvider>
     );
@@ -207,11 +254,13 @@ export function AetherSidebar({ isCollapsed, onSessionChange, showModelSelector 
           </div>
         )}
       </ScrollArea>
-      {showModelSelector && (
-        <div className="mt-auto pt-3 border-t">
-          <ModelSelector />
-        </div>
-      )}
+      <footer className="mt-auto pt-3 border-t space-y-2">
+        {showModelSelector && <ModelSelector />}
+        <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground" onClick={handleExportChat}>
+          <Download className="size-4" />
+          Export Chat
+        </Button>
+      </footer>
     </div>
   );
 }

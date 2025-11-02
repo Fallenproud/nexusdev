@@ -1,4 +1,4 @@
-import type { Message, ChatState, ToolCall, WeatherResult, MCPResult, ErrorResult, SessionInfo, ToolDefinition } from '../../worker/types';
+import type { Message, ChatState, ToolCall, WeatherResult, MCPResult, ErrorResult, SessionInfo, ToolDefinition, CanvasContent } from '../../worker/types';
 export interface ChatResponse {
   success: boolean;
   data?: ChatState;
@@ -200,6 +200,24 @@ class ChatService {
       return await response.json();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch tools';
+      return { success: false, error: errorMessage };
+    }
+  }
+  async updateCanvasContent(content: CanvasContent | null): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/canvas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update canvas content';
+      console.error('Failed to update canvas content:', errorMessage);
       return { success: false, error: errorMessage };
     }
   }

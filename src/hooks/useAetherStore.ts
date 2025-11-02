@@ -23,7 +23,7 @@ interface AetherState {
     sendMessage: (message: string) => Promise<boolean>;
     setModel: (model: string) => Promise<void>;
     fetchAvailableTools: () => Promise<void>;
-    setCanvasContent: (content: CanvasContent | null) => void;
+    setCanvasContent: (content: CanvasContent | null) => Promise<void>;
   };
 }
 const useAetherStoreImpl = create<AetherState>()(
@@ -67,6 +67,7 @@ const useAetherStoreImpl = create<AetherState>()(
           set((state) => {
             state.messages = response.data!.messages;
             state.model = response.data!.model;
+            state.canvasContent = response.data!.canvasContent || null;
           });
         } else {
           toast.error('Failed to load session messages.', { description: response.error });
@@ -145,16 +146,8 @@ const useAetherStoreImpl = create<AetherState>()(
           if (response.success && response.data) {
             set((state) => {
               state.messages = response.data!.messages;
+              state.canvasContent = response.data!.canvasContent || null;
             });
-            const lastMessage = response.data.messages[response.data.messages.length - 1];
-            if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
-              const canvasToolCall = lastMessage.toolCalls.find(
-                (tc) => tc.name === 'display_on_canvas'
-              );
-              if (canvasToolCall && canvasToolCall.result) {
-                get().actions.setCanvasContent(canvasToolCall.result as CanvasContent);
-              }
-            }
           } else {
             throw new Error(response.error || 'Failed to fetch updated messages');
           }
@@ -197,8 +190,12 @@ const useAetherStoreImpl = create<AetherState>()(
         }
         set({ isFetchingTools: false });
       },
-      setCanvasContent: (content) => {
+      setCanvasContent: async (content) => {
         set({ canvasContent: content });
+        const response = await chatService.updateCanvasContent(content);
+        if (!response.success) {
+          toast.error('Failed to save canvas content', { description: response.error });
+        }
       },
     },
   }))

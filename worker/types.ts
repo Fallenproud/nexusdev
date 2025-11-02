@@ -35,6 +35,7 @@ export interface ChatState {
   isProcessing: boolean;
   model: string;
   streamingMessage?: string;
+  canvasContent?: CanvasContent | null;
 }
 export interface SessionInfo {
   id: string;
