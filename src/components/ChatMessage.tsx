@@ -36,7 +36,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           components={{
             code({ node, inline, className, children, ...props }) {
               return (
-                <CodeBlock inline={inline} className={className} {...props}>
+                <CodeBlock inline={inline} className={className}>
                   {String(children)}
                 </CodeBlock>
               );

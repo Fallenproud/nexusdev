@@ -61,9 +61,25 @@
     @apply bg-background text-foreground;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     text-rendering: optimizeLegibility;
-    background-color: hsl(var(--background));
-    background-image: radial-gradient(circle at 1px 1px, hsl(var(--border)) 1px, transparent 0);
-    background-size: 2rem 2rem;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(
+      -45deg,
+      hsl(243, 80%, 20%),
+      hsl(260, 80%, 25%),
+      hsl(224, 71%, 10%),
+      hsl(280, 80%, 25%)
+    );
+    background-size: 400% 400%;
+    animation: background-pan 15s ease infinite;
+    z-index: -1;
   }
   /* Custom Scrollbar */
   ::-webkit-scrollbar {

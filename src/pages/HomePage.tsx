@@ -24,8 +24,8 @@ export function HomePage() {
   }, [sessions, activeSessionId, switchSession]);
   return (
     <AppLayout>
-      <div className="h-screen w-screen p-4">
-        <ResizablePanelGroup direction="horizontal" className="h-full w-full rounded-lg border">
+      <div className="h-screen w-screen p-4 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full w-full rounded-lg border bg-background/50 backdrop-blur-sm">
           <ResizablePanel defaultSize={75} minSize={50}>
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
