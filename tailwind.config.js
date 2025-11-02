@@ -14,7 +14,8 @@ export default {
   				'sans-serif'
   			],
   			display: [
-  				'Cal Sans',
+          'Sora',
+          'DM Sans',
   				'Inter',
   				'system-ui',
   				'sans-serif'
@@ -101,6 +102,10 @@ export default {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
+        indigo: {
+          DEFAULT: 'hsl(var(--indigo))',
+          foreground: 'hsl(var(--indigo-foreground))'
+        },
   			border: 'hsl(var(--border))',
   			ring: 'hsl(var(--ring))',
   			card: {
