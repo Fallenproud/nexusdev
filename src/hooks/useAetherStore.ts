@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { toast } from 'sonner';
 import { chatService } from '@/lib/chat';
-import type { Message, SessionInfo, ToolDefinition, CanvasContent } from '../../worker/types';
+import type { Message, SessionInfo, ToolDefinition } from '../../worker/types';
 interface AetherState {
   sessions: SessionInfo[];
   activeSessionId: string | null;
@@ -12,20 +12,15 @@ interface AetherState {
   model: string;
   availableTools: ToolDefinition[];
   isFetchingTools: boolean;
-  isFetchingSessions: boolean;
-  canvasContent: CanvasContent | null;
-  files: Record<string, string>;
   actions: {
     fetchSessions: () => Promise<void>;
     switchSession: (sessionId: string) => Promise<void>;
     createSession: (title?: string, firstMessage?: string) => Promise<void>;
     deleteSession: (sessionId: string) => Promise<void>;
     updateSessionTitle: (sessionId: string, title: string) => Promise<void>;
-    sendMessage: (message: string) => Promise<boolean>;
+    sendMessage: (message: string) => Promise<void>;
     setModel: (model: string) => Promise<void>;
     fetchAvailableTools: () => Promise<void>;
-    setCanvasContent: (content: CanvasContent | null) => Promise<void>;
-    fetchFiles: () => Promise<void>;
   };
 }
 const useAetherStoreImpl = create<AetherState>()(
@@ -38,21 +33,16 @@ const useAetherStoreImpl = create<AetherState>()(
     model: 'google-ai-studio/gemini-2.5-flash',
     availableTools: [],
     isFetchingTools: false,
-    isFetchingSessions: false,
-    canvasContent: null,
-    files: {},
     actions: {
       fetchSessions: async () => {
-        set({ isFetchingSessions: true });
         const response = await chatService.listSessions();
         if (response.success && response.data) {
           set((state) => {
             state.sessions = response.data!;
           });
         } else {
-          toast.error('Failed to fetch sessions.', { description: response.error });
+          toast.error('Failed to fetch sessions.');
         }
-        set({ isFetchingSessions: false });
       },
       switchSession: async (sessionId) => {
         if (get().activeSessionId === sessionId) return;
@@ -61,9 +51,6 @@ const useAetherStoreImpl = create<AetherState>()(
           state.messages = [];
           state.streamingMessage = '';
           state.isProcessing = true;
-          state.isFetchingSessions = true;
-          state.canvasContent = null;
-          state.files = {};
         });
         chatService.switchSession(sessionId);
         const response = await chatService.getMessages();
@@ -71,15 +58,12 @@ const useAetherStoreImpl = create<AetherState>()(
           set((state) => {
             state.messages = response.data!.messages;
             state.model = response.data!.model;
-            state.canvasContent = response.data!.canvasContent || null;
-            state.files = response.data!.files || {};
           });
         } else {
-          toast.error('Failed to load session messages.', { description: response.error });
+          toast.error('Failed to load session messages.');
         }
         set((state) => {
           state.isProcessing = false;
-          state.isFetchingSessions = false;
         });
       },
       createSession: async (title, firstMessage) => {
@@ -89,7 +73,7 @@ const useAetherStoreImpl = create<AetherState>()(
           await get().actions.fetchSessions();
           await get().actions.switchSession(response.data.sessionId);
         } else {
-          toast.error('Failed to create a new session.', { description: response.error });
+          toast.error('Failed to create a new session.');
         }
       },
       deleteSession: async (sessionId) => {
@@ -107,7 +91,7 @@ const useAetherStoreImpl = create<AetherState>()(
             }
           });
         } else {
-          toast.error('Failed to delete session.', { description: response.error });
+          toast.error('Failed to delete session.');
         }
       },
       updateSessionTitle: async (sessionId, title) => {
@@ -121,59 +105,38 @@ const useAetherStoreImpl = create<AetherState>()(
             }
           });
         } else {
-          toast.error('Failed to update session title.', { description: response.error });
+          toast.error('Failed to update session title.');
         }
       },
       sendMessage: async (message) => {
-        try {
-          if (!get().activeSessionId) {
-            await get().actions.createSession(undefined, message);
-          }
-          set((state) => {
-            state.isProcessing = true;
-            state.streamingMessage = '';
-            state.messages.push({
-              id: crypto.randomUUID(),
-              role: 'user',
-              content: message,
-              timestamp: Date.now(),
-            });
-          });
-          const sendResponse = await chatService.sendMessage(message, get().model, (chunk) => {
-            set((state) => {
-              state.streamingMessage += chunk;
-            });
-          });
-          if (!sendResponse.success) {
-            throw new Error(sendResponse.error || 'Failed to send message');
-          }
-          const response = await chatService.getMessages();
-          if (response.success && response.data) {
-            set((state) => {
-              state.messages = response.data!.messages;
-              state.canvasContent = response.data!.canvasContent || null;
-              state.files = response.data!.files || {};
-            });
-          } else {
-            throw new Error(response.error || 'Failed to fetch updated messages');
-          }
-          set((state) => {
-            state.isProcessing = false;
-            state.streamingMessage = '';
-          });
-          return true;
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-          toast.error('Message failed to send', {
-            description: 'Please check your connection and try again.',
-          });
-          console.error('sendMessage failed:', errorMessage);
-          set((state) => {
-            state.isProcessing = false;
-            state.streamingMessage = '';
-          });
-          return false;
+        if (!get().activeSessionId) {
+          await get().actions.createSession(undefined, message);
         }
+        set((state) => {
+          state.isProcessing = true;
+          state.streamingMessage = '';
+          state.messages.push({
+            id: crypto.randomUUID(),
+            role: 'user',
+            content: message,
+            timestamp: Date.now(),
+          });
+        });
+        await chatService.sendMessage(message, get().model, (chunk) => {
+          set((state) => {
+            state.streamingMessage += chunk;
+          });
+        });
+        const response = await chatService.getMessages();
+        if (response.success && response.data) {
+          set((state) => {
+            state.messages = response.data!.messages;
+          });
+        }
+        set((state) => {
+          state.isProcessing = false;
+          state.streamingMessage = '';
+        });
       },
       setModel: async (model) => {
         set((state) => {
@@ -183,7 +146,7 @@ const useAetherStoreImpl = create<AetherState>()(
         if (response.success) {
           toast.success(`Model switched to ${model}`);
         } else {
-          toast.error('Failed to switch model.', { description: response.error });
+          toast.error('Failed to switch model.');
         }
       },
       fetchAvailableTools: async () => {
@@ -192,24 +155,9 @@ const useAetherStoreImpl = create<AetherState>()(
         if (response.success && response.data) {
           set({ availableTools: response.data });
         } else {
-          toast.error('Failed to fetch available tools.', { description: response.error });
+          toast.error('Failed to fetch available tools.');
         }
         set({ isFetchingTools: false });
-      },
-      setCanvasContent: async (content) => {
-        set({ canvasContent: content });
-        const response = await chatService.updateCanvasContent(content);
-        if (!response.success) {
-          toast.error('Failed to save canvas content', { description: response.error });
-        }
-      },
-      fetchFiles: async () => {
-        const response = await chatService.getFiles();
-        if (response.success && response.data) {
-          set({ files: response.data });
-        } else {
-          toast.error('Failed to fetch files.', { description: response.error });
-        }
       },
     },
   }))

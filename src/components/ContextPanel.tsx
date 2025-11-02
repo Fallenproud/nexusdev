@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useNexusStore } from '@/hooks/useNexusStore';
+import { useAetherStore } from '@/hooks/useAetherStore';
 import { Info, Wrench, Calendar, Clock, Hash, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 export function ContextPanel() {
-  const activeSessionId = useNexusStore((state) => state.activeSessionId);
-  const sessions = useNexusStore((state) => state.sessions);
-  const availableTools = useNexusStore((state) => state.availableTools);
-  const isFetchingTools = useNexusStore((state) => state.isFetchingTools);
-  const fetchAvailableTools = useNexusStore((state) => state.fetchAvailableTools);
+  const activeSessionId = useAetherStore((state) => state.activeSessionId);
+  const sessions = useAetherStore((state) => state.sessions);
+  const availableTools = useAetherStore((state) => state.availableTools);
+  const isFetchingTools = useAetherStore((state) => state.isFetchingTools);
+  const fetchAvailableTools = useAetherStore((state) => state.actions.fetchAvailableTools);
   const activeSession = sessions.find((s) => s.id === activeSessionId);
   useEffect(() => {
     fetchAvailableTools();
@@ -24,7 +24,7 @@ export function ContextPanel() {
         <div className="px-3 space-y-6">
           {activeSession ? (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Active Nexus</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Active Session</h3>
               <div className="text-sm space-y-2">
                 <p className="font-medium text-foreground break-all">{activeSession.title}</p>
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -62,7 +62,7 @@ export function ContextPanel() {
                 availableTools.map((tool) => (
                   <div key={tool.function.name} className="p-3 rounded-md bg-background/50 border">
                     <div className="flex items-center gap-2 mb-1">
-                      <Wrench className="size-4 text-indigo" />
+                      <Wrench className="size-4 text-primary" />
                       <p className="font-mono text-sm font-medium text-foreground">{tool.function.name}</p>
                     </div>
                     <p className="text-xs text-muted-foreground">{tool.function.description}</p>

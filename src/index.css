@@ -4,50 +4,51 @@
 @tailwind utilities;
 @layer base {
   :root {
-    /* Core Colors */
-    --background: 224 71% 4%; /* Dark Slate Blue */
-    --foreground: 220 13% 91%; /* Light Gray */
-    --primary: 243 80% 60%; /* Vibrant Indigo */
-    --primary-foreground: 0 0% 100%; /* White */
-    --muted: 223 47% 11%; /* Darker Slate Blue */
-    --muted-foreground: 220 14% 65%; /* Muted Gray */
-    --border: 224 30% 15%; /* Slate Border */
-    --ring: 243 80% 60%; /* Vibrant Indigo */
-    --card: 223 47% 11%; /* Darker Slate Blue */
-    --card-foreground: 220 13% 91%; /* Light Gray */
-    --popover: 224 71% 4%; /* Dark Slate Blue */
-    --popover-foreground: 220 13% 91%; /* Light Gray */
-    --secondary: 224 30% 15%; /* Slate */
-    --secondary-foreground: 220 13% 91%; /* Light Gray */
-    --accent: 224 30% 15%; /* Slate */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 63% 31%; /* Dark Red */
+    /* Core Colors - Luxurious Theme */
+    --background: 220 20% 10%; /* Deep Charcoal */
+    --foreground: 220 15% 95%; /* Soft Off-White */
+    --primary: 170 80% 45%; /* Vibrant Cyan/Teal */
+    --primary-foreground: 220 20% 10%; /* Deep Charcoal for contrast on primary */
+    --muted: 220 20% 15%; /* Slightly Lighter Charcoal */
+    --muted-foreground: 220 10% 60%; /* Muted Gray */
+    --border: 220 20% 20%; /* Soft Border */
+    --ring: 170 80% 55%; /* Brighter Cyan/Teal for focus */
+    --card: 220 20% 12%; /* Card Background */
+    --card-foreground: 220 15% 95%; /* Soft Off-White */
+    --popover: 220 20% 8%; /* Darker Popover */
+    --popover-foreground: 220 15% 95%; /* Soft Off-White */
+    --secondary: 220 20% 25%; /* Lighter secondary elements */
+    --secondary-foreground: 220 15% 95%; /* Soft Off-White */
+    --accent: 220 20% 25%; /* Same as secondary */
+    --accent-foreground: 220 15% 95%; /* Soft Off-White */
+    --destructive: 0 70% 50%; /* Saturated Red */
     --destructive-foreground: 0 0% 100%; /* White */
-    --input: 224 30% 15%; /* Slate */
-    --indigo: 243 80% 60%;
-    --indigo-foreground: 0 0% 100%;
+    --input: 220 20% 18%; /* Input Background */
+    --indigo: 170 80% 45%; /* Re-alias indigo to primary for consistency */
+    --indigo-foreground: 220 20% 10%;
     --radius: 0.75rem;
   }
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 220 13% 91%;
-    --primary: 243 80% 60%;
-    --primary-foreground: 0 0% 100%;
-    --muted: 223 47% 11%;
-    --muted-foreground: 220 14% 65%;
-    --border: 224 30% 15%;
-    --ring: 243 80% 60%;
-    --card: 223 47% 11%;
-    --card-foreground: 220 13% 91%;
-    --popover: 224 71% 4%;
-    --popover-foreground: 220 13% 91%;
-    --secondary: 224 30% 15%;
-    --secondary-foreground: 220 13% 91%;
-    --accent: 224 30% 15%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 63% 31%;
+    /* Dark theme is the default, so these are the same */
+    --background: 220 20% 10%;
+    --foreground: 220 15% 95%;
+    --primary: 170 80% 45%;
+    --primary-foreground: 220 20% 10%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 60%;
+    --border: 220 20% 20%;
+    --ring: 170 80% 55%;
+    --card: 220 20% 12%;
+    --card-foreground: 220 15% 95%;
+    --popover: 220 20% 8%;
+    --popover-foreground: 220 15% 95%;
+    --secondary: 220 20% 25%;
+    --secondary-foreground: 220 15% 95%;
+    --accent: 220 20% 25%;
+    --accent-foreground: 220 15% 95%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
-    --input: 224 30% 15%;
+    --input: 220 20% 18%;
   }
   * {
     @apply border-border;
@@ -72,10 +73,10 @@
     height: 100vh;
     background: linear-gradient(
       -45deg,
-      hsl(243, 80%, 20%),
-      hsl(260, 80%, 25%),
-      hsl(224, 71%, 10%),
-      hsl(280, 80%, 25%)
+      hsl(190, 80%, 15%),
+      hsl(220, 40%, 10%),
+      hsl(170, 80%, 20%),
+      hsl(240, 30%, 12%)
     );
     background-size: 400% 400%;
     animation: background-pan 15s ease infinite;

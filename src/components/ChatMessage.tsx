@@ -21,22 +21,22 @@ export function ChatMessage({ message }: ChatMessageProps) {
       className={cn('flex items-start gap-3 w-full', isUser ? 'justify-end' : 'justify-start')}
     >
       {!isUser && (
-        <div className="flex-shrink-0 size-8 rounded-full bg-indigo flex items-center justify-center">
-          <Bot className="size-5 text-indigo-foreground" />
+        <div className="flex-shrink-0 size-8 rounded-full bg-primary flex items-center justify-center">
+          <Bot className="size-5 text-primary-foreground" />
         </div>
       )}
       <div
         className={cn(
           'max-w-md lg:max-w-2xl rounded-2xl p-4 text-sm',
           isUser
-            ? 'bg-indigo text-indigo-foreground rounded-br-lg'
+            ? 'bg-primary text-primary-foreground rounded-br-lg'
             : 'bg-muted text-foreground rounded-bl-lg'
         )}
       >
         <ReactMarkdown
           className="prose prose-sm dark:prose-invert prose-p:whitespace-pre-wrap prose-p:my-0 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 max-w-none"
           components={{
-            code({ node, inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) {
+            code({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) {
               return (
                 <CodeBlock inline={inline} className={className}>
                   {String(children)}

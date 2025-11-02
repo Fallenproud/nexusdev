@@ -3,18 +3,18 @@ import { Send, Bot, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useNexusStore } from '@/hooks/useNexusStore';
+import { useAetherStore } from '@/hooks/useAetherStore';
 import { ChatMessage } from './ChatMessage';
 import { ModelSelector } from './ModelSelector';
 import { Toaster } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 export function ChatPanel() {
-  const messages = useNexusStore((state) => state.messages);
-  const streamingMessage = useNexusStore((state) => state.streamingMessage);
-  const isProcessing = useNexusStore((state) => state.isProcessing);
-  const sendMessage = useNexusStore((state) => state.sendMessage);
-  const activeSessionId = useNexusStore((state) => state.activeSessionId);
+  const messages = useAetherStore((state) => state.messages);
+  const streamingMessage = useAetherStore((state) => state.streamingMessage);
+  const isProcessing = useAetherStore((state) => state.isProcessing);
+  const sendMessage = useAetherStore((state) => state.actions.sendMessage);
+  const activeSessionId = useAetherStore((state) => state.activeSessionId);
   const [input, setInput] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -66,7 +66,7 @@ export function ChatPanel() {
           {messages.length === 0 && !isProcessing && (
             <div className="text-center text-muted-foreground py-16 flex flex-col items-center">
               <Bot className="size-12 mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Welcome to NexusDev</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Welcome to AetherCode</h3>
               <p className="max-w-md mb-6">Start a conversation or try one of these examples to begin.</p>
               <div className="flex flex-wrap justify-center gap-2 max-w-md">
                 {examplePrompts.map((prompt) => (
@@ -110,7 +110,7 @@ export function ChatPanel() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask NexusDev to do something..."
+            placeholder="Ask AetherCode to do something..."
             className="w-full min-h-[48px] max-h-48 resize-none rounded-lg pr-14 pl-4 py-3 text-base bg-background border-none focus-visible:ring-0 focus-visible:ring-offset-0"
             rows={1}
             disabled={isProcessing || !activeSessionId}

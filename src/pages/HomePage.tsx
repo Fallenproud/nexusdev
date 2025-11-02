@@ -1,21 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import type { PanelRef } from 'react-resizable-panels';
-import { NexusSidebar } from '@/components/NexusSidebar';
+import { AetherSidebar } from '@/components/AetherSidebar';
 import { ChatPanel } from '@/components/ChatPanel';
 import { ContextPanel } from '@/components/ContextPanel';
-import { useNexusStore } from '@/hooks/useNexusStore';
+import { useAetherStore } from '@/hooks/useAetherStore';
 import { Button } from '@/components/ui/button';
 import { PanelLeftClose, PanelRightClose } from 'lucide-react';
 import { cn } from '@/lib/utils';
 export function HomePage() {
-  const fetchSessions = useNexusStore((state) => state.fetchSessions);
-  const switchSession = useNexusStore((state) => state.switchSession);
-  const sessions = useNexusStore((state) => state.sessions);
-  const activeSessionId = useNexusStore((state) => state.activeSessionId);
+  const fetchSessions = useAetherStore((state) => state.actions.fetchSessions);
+  const switchSession = useAetherStore((state) => state.actions.switchSession);
+  const sessions = useAetherStore((state) => state.sessions);
+  const activeSessionId = useAetherStore((state) => state.activeSessionId);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const contextPanelRef = useRef<PanelRef>(null);
+  const contextPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null);
   // This effect runs once on mount to fetch the initial list of sessions.
   useEffect(() => {
     fetchSessions();
@@ -38,11 +37,11 @@ export function HomePage() {
   return (
     <AppLayout>
       <div className="h-screen w-screen p-4 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full w-full rounded-lg border bg-black/20 backdrop-blur-md ring-1 ring-inset ring-white/10">
+        <ResizablePanelGroup direction="horizontal" className="h-full w-full rounded-lg border bg-black/20 backdrop-blur-md ring-1 ring-inset ring-white/10 shadow-soft-glow">
           <ResizablePanel defaultSize={75} minSize={50}>
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-                <NexusSidebar />
+                <AetherSidebar />
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={75}>

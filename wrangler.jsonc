@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "nexus-dev-dvw33apoj8lymf8zqptq0",
+	"name": "aether-code-dvw33apoj8lymf8zqptq0",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
 	"compatibility_flags": ["nodejs_compat"],
