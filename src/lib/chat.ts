@@ -28,20 +28,19 @@ class ChatService {
         body: JSON.stringify({ message, model, stream: !!onChunk }),
       });
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
       }
       if (onChunk && response.body) {
         // Handle streaming response
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let fullResponse = '';
         try {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
             if (chunk) {
-              fullResponse += chunk;
               onChunk(chunk);
             }
           }
@@ -53,20 +52,23 @@ class ChatService {
       // Non-streaming response
       return await response.json();
     } catch (error) {
-      console.error('Failed to send message:', error);
-      return { success: false, error: 'Failed to send message' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+      console.error('Failed to send message:', errorMessage);
+      return { success: false, error: errorMessage };
     }
   }
   async getMessages(): Promise<ChatResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/messages`);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
       }
       return await response.json();
     } catch (error) {
-      console.error('Failed to get messages:', error);
-      return { success: false, error: 'Failed to load messages' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load messages';
+      console.error('Failed to get messages:', errorMessage);
+      return { success: false, error: errorMessage };
     }
   }
   async clearMessages(): Promise<ChatResponse> {
@@ -75,12 +77,14 @@ class ChatService {
         method: 'DELETE'
       });
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
       }
       return await response.json();
     } catch (error) {
-      console.error('Failed to clear messages:', error);
-      return { success: false, error: 'Failed to clear messages' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to clear messages';
+      console.error('Failed to clear messages:', errorMessage);
+      return { success: false, error: errorMessage };
     }
   }
   getSessionId(): string {
@@ -92,7 +96,7 @@ class ChatService {
   }
   switchSession(sessionId: string): void {
     this.sessionId = sessionId;
-    this.baseUrl = `/api/chat/${sessionId}`;
+    this.baseUrl = `/api/chat/${this.sessionId}`;
   }
   // Session Management Methods
   async createSession(title?: string, sessionId?: string, firstMessage?: string): Promise<{ success: boolean; data?: { sessionId: string; title: string }; error?: string }> {
@@ -102,25 +106,40 @@ class ChatService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, sessionId, firstMessage })
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
       return await response.json();
     } catch (error) {
-      return { success: false, error: 'Failed to create session' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create session';
+      return { success: false, error: errorMessage };
     }
   }
   async listSessions(): Promise<{ success: boolean; data?: SessionInfo[]; error?: string }> {
     try {
       const response = await fetch('/api/sessions');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
       return await response.json();
     } catch (error) {
-      return { success: false, error: 'Failed to list sessions' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to list sessions';
+      return { success: false, error: errorMessage };
     }
   }
   async deleteSession(sessionId: string): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
       return await response.json();
     } catch (error) {
-      return { success: false, error: 'Failed to delete session' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete session';
+      return { success: false, error: errorMessage };
     }
   }
   async updateSessionTitle(sessionId: string, title: string): Promise<{ success: boolean; error?: string }> {
@@ -130,17 +149,27 @@ class ChatService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title })
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
       return await response.json();
     } catch (error) {
-      return { success: false, error: 'Failed to update session title' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update session title';
+      return { success: false, error: errorMessage };
     }
   }
   async clearAllSessions(): Promise<{ success: boolean; data?: { deletedCount: number }; error?: string }> {
     try {
       const response = await fetch('/api/sessions', { method: 'DELETE' });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
       return await response.json();
     } catch (error) {
-      return { success: false, error: 'Failed to clear all sessions' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to clear all sessions';
+      return { success: false, error: errorMessage };
     }
   }
   async updateModel(model: string): Promise<ChatResponse> {
@@ -151,20 +180,27 @@ class ChatService {
         body: JSON.stringify({ model })
       });
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
       }
       return await response.json();
     } catch (error) {
-      console.error('Failed to update model:', error);
-      return { success: false, error: 'Failed to update model' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update model';
+      console.error('Failed to update model:', errorMessage);
+      return { success: false, error: errorMessage };
     }
   }
   async getAvailableTools(): Promise<{ success: boolean; data?: ToolDefinition[]; error?: string }> {
     try {
       const response = await fetch('/api/tools');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
       return await response.json();
     } catch (error) {
-      return { success: false, error: 'Failed to fetch tools' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch tools';
+      return { success: false, error: errorMessage };
     }
   }
 }

@@ -42,11 +42,13 @@ export function ChatPanel({ showHeader = true }: ChatPanelProps) {
       });
     }
   }, [messages, streamingMessage]);
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
-    sendMessage(input.trim());
-    setInput('');
+    const success = await sendMessage(input.trim());
+    if (success) {
+      setInput('');
+    }
   };
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

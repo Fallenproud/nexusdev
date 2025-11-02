@@ -20,7 +20,7 @@ interface AetherState {
     createSession: (title?: string, firstMessage?: string) => Promise<void>;
     deleteSession: (sessionId: string) => Promise<void>;
     updateSessionTitle: (sessionId: string, title: string) => Promise<void>;
-    sendMessage: (message: string) => Promise<void>;
+    sendMessage: (message: string) => Promise<boolean>;
     setModel: (model: string) => Promise<void>;
     fetchAvailableTools: () => Promise<void>;
     setCanvasContent: (content: CanvasContent | null) => void;
@@ -47,7 +47,7 @@ const useAetherStoreImpl = create<AetherState>()(
             state.sessions = response.data!;
           });
         } else {
-          toast.error('Failed to fetch sessions.');
+          toast.error('Failed to fetch sessions.', { description: response.error });
         }
         set({ isFetchingSessions: false });
       },
@@ -69,7 +69,7 @@ const useAetherStoreImpl = create<AetherState>()(
             state.model = response.data!.model;
           });
         } else {
-          toast.error('Failed to load session messages.');
+          toast.error('Failed to load session messages.', { description: response.error });
         }
         set((state) => {
           state.isProcessing = false;
@@ -83,7 +83,7 @@ const useAetherStoreImpl = create<AetherState>()(
           await get().actions.fetchSessions();
           await get().actions.switchSession(response.data.sessionId);
         } else {
-          toast.error('Failed to create a new session.');
+          toast.error('Failed to create a new session.', { description: response.error });
         }
       },
       deleteSession: async (sessionId) => {
@@ -101,7 +101,7 @@ const useAetherStoreImpl = create<AetherState>()(
             }
           });
         } else {
-          toast.error('Failed to delete session.');
+          toast.error('Failed to delete session.', { description: response.error });
         }
       },
       updateSessionTitle: async (sessionId, title) => {
@@ -115,48 +115,66 @@ const useAetherStoreImpl = create<AetherState>()(
             }
           });
         } else {
-          toast.error('Failed to update session title.');
+          toast.error('Failed to update session title.', { description: response.error });
         }
       },
       sendMessage: async (message) => {
-        if (!get().activeSessionId) {
-          await get().actions.createSession(undefined, message);
-        }
-        set((state) => {
-          state.isProcessing = true;
-          state.streamingMessage = '';
-          state.messages.push({
-            id: crypto.randomUUID(),
-            role: 'user',
-            content: message,
-            timestamp: Date.now(),
-          });
-        });
-        await chatService.sendMessage(message, get().model, (chunk) => {
-          set((state) => {
-            state.streamingMessage += chunk;
-          });
-        });
-        const response = await chatService.getMessages();
-        if (response.success && response.data) {
-          set((state) => {
-            state.messages = response.data!.messages;
-          });
-          // Check for canvas tool call in the last message
-          const lastMessage = response.data.messages[response.data.messages.length - 1];
-          if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
-            const canvasToolCall = lastMessage.toolCalls.find(
-              (tc) => tc.name === 'display_on_canvas'
-            );
-            if (canvasToolCall && canvasToolCall.result) {
-              get().actions.setCanvasContent(canvasToolCall.result as CanvasContent);
-            }
+        try {
+          if (!get().activeSessionId) {
+            await get().actions.createSession(undefined, message);
           }
+          set((state) => {
+            state.isProcessing = true;
+            state.streamingMessage = '';
+            state.messages.push({
+              id: crypto.randomUUID(),
+              role: 'user',
+              content: message,
+              timestamp: Date.now(),
+            });
+          });
+          const sendResponse = await chatService.sendMessage(message, get().model, (chunk) => {
+            set((state) => {
+              state.streamingMessage += chunk;
+            });
+          });
+          if (!sendResponse.success) {
+            throw new Error(sendResponse.error || 'Failed to send message');
+          }
+          const response = await chatService.getMessages();
+          if (response.success && response.data) {
+            set((state) => {
+              state.messages = response.data!.messages;
+            });
+            const lastMessage = response.data.messages[response.data.messages.length - 1];
+            if (lastMessage?.role === 'assistant' && lastMessage.toolCalls) {
+              const canvasToolCall = lastMessage.toolCalls.find(
+                (tc) => tc.name === 'display_on_canvas'
+              );
+              if (canvasToolCall && canvasToolCall.result) {
+                get().actions.setCanvasContent(canvasToolCall.result as CanvasContent);
+              }
+            }
+          } else {
+            throw new Error(response.error || 'Failed to fetch updated messages');
+          }
+          set((state) => {
+            state.isProcessing = false;
+            state.streamingMessage = '';
+          });
+          return true;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+          toast.error('Message failed to send', {
+            description: 'Please check your connection and try again.',
+          });
+          console.error('sendMessage failed:', errorMessage);
+          set((state) => {
+            state.isProcessing = false;
+            state.streamingMessage = '';
+          });
+          return false;
         }
-        set((state) => {
-          state.isProcessing = false;
-          state.streamingMessage = '';
-        });
       },
       setModel: async (model) => {
         set((state) => {
@@ -166,7 +184,7 @@ const useAetherStoreImpl = create<AetherState>()(
         if (response.success) {
           toast.success(`Model switched to ${model}`);
         } else {
-          toast.error('Failed to switch model.');
+          toast.error('Failed to switch model.', { description: response.error });
         }
       },
       fetchAvailableTools: async () => {
@@ -175,7 +193,7 @@ const useAetherStoreImpl = create<AetherState>()(
         if (response.success && response.data) {
           set({ availableTools: response.data });
         } else {
-          toast.error('Failed to fetch available tools.');
+          toast.error('Failed to fetch available tools.', { description: response.error });
         }
         set({ isFetchingTools: false });
       },
