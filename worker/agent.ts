@@ -126,7 +126,13 @@ export class ChatAgent extends Agent<Env, ChatState> {
               }
             );
             const assistantMessage = createMessage('assistant', response.content, response.toolCalls);
-            const canvasToolCall = response.toolCalls?.find(tc => tc.name === 'display_on_canvas');
+            const canvasToolCall = response.toolCalls
+              ?.slice()
+              .reverse()
+              .find(tc => 
+                (tc.name === 'display_on_canvas' || tc.name === 'generate_diagram') &&
+                tc.result && typeof tc.result === 'object' && 'contentType' in tc.result && 'content' in tc.result
+              );
             const newCanvasContent = canvasToolCall ? (canvasToolCall.result as CanvasContent) : this.state.canvasContent;
             // Update state with final response
             this.setState({
@@ -168,7 +174,13 @@ export class ChatAgent extends Agent<Env, ChatState> {
         this.state.messages
       );
       const assistantMessage = createMessage('assistant', response.content, response.toolCalls);
-      const canvasToolCall = response.toolCalls?.find(tc => tc.name === 'display_on_canvas');
+      const canvasToolCall = response.toolCalls
+        ?.slice()
+        .reverse()
+        .find(tc => 
+          (tc.name === 'display_on_canvas' || tc.name === 'generate_diagram') &&
+          tc.result && typeof tc.result === 'object' && 'contentType' in tc.result && 'content' in tc.result
+        );
       const newCanvasContent = canvasToolCall ? (canvasToolCall.result as CanvasContent) : this.state.canvasContent;
       // Update state with response
       this.setState({

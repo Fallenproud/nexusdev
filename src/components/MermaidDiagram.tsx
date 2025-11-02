@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useId } from 'react';
+import mermaid from 'mermaid';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
@@ -15,7 +16,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let isMounted = true;
-    const loadAndRender = async () => {
+    const renderDiagram = async () => {
       if (svgCache.has(chart)) {
         if (isMounted) {
           setSvg(svgCache.get(chart)!);
@@ -28,8 +29,6 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         setError(null);
       }
       try {
-        // Dynamically import mermaid only when needed
-        const mermaid = (await import('mermaid')).default;
         mermaid.initialize({
           startOnLoad: false,
           theme: 'dark',
@@ -65,7 +64,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       }
     };
     if (chart) {
-      loadAndRender();
+      renderDiagram();
     }
     return () => {
       isMounted = false;
@@ -89,9 +88,9 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   if (svg) {
     // The container ensures the SVG is responsive and centered
     return (
-      <div 
+      <div
         className="w-full flex justify-center items-center p-4"
-        dangerouslySetInnerHTML={{ __html: svg }} 
+        dangerouslySetInnerHTML={{ __html: svg }}
       />
     );
   }
