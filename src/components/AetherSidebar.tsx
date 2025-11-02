@@ -8,12 +8,14 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Logo } from './Logo';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 interface AetherSidebarProps {
   isCollapsed: boolean;
 }
 export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
   const sessions = useAetherStore((state) => state.sessions);
   const activeSessionId = useAetherStore((state) => state.activeSessionId);
+  const isFetchingSessions = useAetherStore((state) => state.isFetchingSessions);
   const { createSession, switchSession, deleteSession, updateSessionTitle } = useAetherStore(
     (state) => state.actions
   );
@@ -50,21 +52,29 @@ export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
           </Tooltip>
           <ScrollArea className="flex-1 w-full">
             <div className="space-y-1">
-              {sessions.map((session) => (
-                <Tooltip key={session.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={activeSessionId === session.id ? 'secondary' : 'ghost'}
-                      size="icon"
-                      className="w-9 h-9"
-                      onClick={() => switchSession(session.id)}
-                    >
-                      <MessageSquare className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{session.title}</TooltipContent>
-                </Tooltip>
-              ))}
+              {isFetchingSessions ? (
+                <div className="space-y-1">
+                  <Skeleton className="w-9 h-9 rounded-md" />
+                  <Skeleton className="w-9 h-9 rounded-md" />
+                  <Skeleton className="w-9 h-9 rounded-md" />
+                </div>
+              ) : (
+                sessions.map((session) => (
+                  <Tooltip key={session.id}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={activeSessionId === session.id ? 'secondary' : 'ghost'}
+                        size="icon"
+                        className="w-9 h-9"
+                        onClick={() => switchSession(session.id)}
+                      >
+                        <MessageSquare className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{session.title}</TooltipContent>
+                  </Tooltip>
+                ))
+              )}
             </div>
           </ScrollArea>
         </div>
@@ -85,7 +95,13 @@ export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
         New Session
       </Button>
       <ScrollArea className="flex-1 -mx-3">
-        {sessions.length === 0 ? (
+        {isFetchingSessions ? (
+          <div className="px-3 space-y-1">
+            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-12 w-full rounded-md" />
+          </div>
+        ) : sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-4">
             <Bot className="size-10 mb-3" />
             <p className="text-sm font-medium">No sessions yet.</p>

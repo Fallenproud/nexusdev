@@ -12,6 +12,7 @@ interface AetherState {
   model: string;
   availableTools: ToolDefinition[];
   isFetchingTools: boolean;
+  isFetchingSessions: boolean;
   actions: {
     fetchSessions: () => Promise<void>;
     switchSession: (sessionId: string) => Promise<void>;
@@ -33,8 +34,10 @@ const useAetherStoreImpl = create<AetherState>()(
     model: 'google-ai-studio/gemini-2.5-flash',
     availableTools: [],
     isFetchingTools: false,
+    isFetchingSessions: false,
     actions: {
       fetchSessions: async () => {
+        set({ isFetchingSessions: true });
         const response = await chatService.listSessions();
         if (response.success && response.data) {
           set((state) => {
@@ -43,6 +46,7 @@ const useAetherStoreImpl = create<AetherState>()(
         } else {
           toast.error('Failed to fetch sessions.');
         }
+        set({ isFetchingSessions: false });
       },
       switchSession: async (sessionId) => {
         if (get().activeSessionId === sessionId) return;
@@ -51,6 +55,7 @@ const useAetherStoreImpl = create<AetherState>()(
           state.messages = [];
           state.streamingMessage = '';
           state.isProcessing = true;
+          state.isFetchingSessions = true;
         });
         chatService.switchSession(sessionId);
         const response = await chatService.getMessages();
@@ -64,6 +69,7 @@ const useAetherStoreImpl = create<AetherState>()(
         }
         set((state) => {
           state.isProcessing = false;
+          state.isFetchingSessions = false;
         });
       },
       createSession: async (title, firstMessage) => {

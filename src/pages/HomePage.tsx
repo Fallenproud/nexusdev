@@ -13,8 +13,10 @@ export function HomePage() {
   const switchSession = useAetherStore((state) => state.actions.switchSession);
   const sessions = useAetherStore((state) => state.sessions);
   const activeSessionId = useAetherStore((state) => state.activeSessionId);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isContextPanelCollapsed, setIsContextPanelCollapsed] = useState(false);
+  const [panelCollapseState, setPanelCollapseState] = useState({
+    sidebar: false,
+    context: false,
+  });
   const contextPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null);
   const sidebarPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null);
   useEffect(() => {
@@ -26,14 +28,14 @@ export function HomePage() {
     }
   }, [sessions, activeSessionId, switchSession]);
   const handleContextCollapseToggle = () => {
-    if (isContextPanelCollapsed) {
+    if (panelCollapseState.context) {
       contextPanelRef.current?.expand();
     } else {
       contextPanelRef.current?.collapse();
     }
   };
   const handleSidebarCollapseToggle = () => {
-    if (isSidebarCollapsed) {
+    if (panelCollapseState.sidebar) {
       sidebarPanelRef.current?.expand();
     } else {
       sidebarPanelRef.current?.collapse();
@@ -50,11 +52,11 @@ export function HomePage() {
             maxSize={30}
             collapsible={true}
             collapsedSize={4}
-            onCollapse={() => setIsSidebarCollapsed(true)}
-            onExpand={() => setIsSidebarCollapsed(false)}
-            className={cn(isSidebarCollapsed && 'min-w-[50px] transition-all duration-300 ease-in-out')}
+            onCollapse={() => setPanelCollapseState((prev) => ({ ...prev, sidebar: true }))}
+            onExpand={() => setPanelCollapseState((prev) => ({ ...prev, sidebar: false }))}
+            className={cn(panelCollapseState.sidebar && 'min-w-[50px] transition-all duration-300 ease-in-out')}
           >
-            <AetherSidebar isCollapsed={isSidebarCollapsed} />
+            <AetherSidebar isCollapsed={panelCollapseState.sidebar} />
           </ResizablePanel>
           <ResizableHandle withHandle className="relative">
              <Button
@@ -62,11 +64,11 @@ export function HomePage() {
               variant="ghost"
               className={cn(
                 'absolute top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background border',
-                isSidebarCollapsed ? 'left-1/2 -translate-x-1/2' : 'left-1/2 -translate-x-1/2'
+                panelCollapseState.sidebar ? 'right-1/2 translate-x-1/2' : 'left-1/2 -translate-x-1/2'
               )}
               onClick={handleSidebarCollapseToggle}
             >
-              {isSidebarCollapsed ? <PanelRightClose className="size-4" /> : <PanelLeftClose className="size-4" />}
+              {panelCollapseState.sidebar ? <PanelRightClose className="size-4" /> : <PanelLeftClose className="size-4" />}
             </Button>
           </ResizableHandle>
           <ResizablePanel defaultSize={50} minSize={30}>
@@ -78,11 +80,11 @@ export function HomePage() {
               variant="ghost"
               className={cn(
                 'absolute top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background/80 hover:bg-background border',
-                isContextPanelCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-1/2 translate-x-1/2'
+                panelCollapseState.context ? 'left-1/2 -translate-x-1/2' : 'right-1/2 translate-x-1/2'
               )}
               onClick={handleContextCollapseToggle}
             >
-              {isContextPanelCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelRightClose className="size-4" />}
+              {panelCollapseState.context ? <PanelLeftOpen className="size-4" /> : <PanelRightClose className="size-4" />}
             </Button>
           </ResizableHandle>
           <ResizablePanel
@@ -92,8 +94,8 @@ export function HomePage() {
             maxSize={30}
             collapsible={true}
             collapsedSize={0}
-            onCollapse={() => setIsContextPanelCollapsed(true)}
-            onExpand={() => setIsContextPanelCollapsed(false)}
+            onCollapse={() => setPanelCollapseState((prev) => ({ ...prev, context: true }))}
+            onExpand={() => setPanelCollapseState((prev) => ({ ...prev, context: false }))}
           >
             <ContextPanel />
           </ResizablePanel>
