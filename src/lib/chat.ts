@@ -32,7 +32,6 @@ class ChatService {
         throw new Error(errorData.error || `HTTP error ${response.status}`);
       }
       if (onChunk && response.body) {
-        // Handle streaming response
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         try {
@@ -49,7 +48,6 @@ class ChatService {
         }
         return { success: true };
       }
-      // Non-streaming response
       return await response.json();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
@@ -98,7 +96,6 @@ class ChatService {
     this.sessionId = sessionId;
     this.baseUrl = `/api/chat/${this.sessionId}`;
   }
-  // Session Management Methods
   async createSession(title?: string, sessionId?: string, firstMessage?: string): Promise<{ success: boolean; data?: { sessionId: string; title: string }; error?: string }> {
     try {
       const response = await fetch('/api/sessions', {
@@ -221,6 +218,20 @@ class ChatService {
       return { success: false, error: errorMessage };
     }
   }
+  async getFiles(): Promise<{ success: boolean; data?: Record<string, string>; error?: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/files`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch files';
+      console.error('Failed to fetch files:', errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
 }
 export const chatService = new ChatService();
 export const formatTime = (timestamp: number): string => {
@@ -240,7 +251,6 @@ export const generateSessionTitle = (firstUserMessage?: string): string => {
   if (!firstUserMessage || !firstUserMessage.trim()) {
     return `Chat ${dateTime}`;
   }
-  // Clean and truncate the message
   const cleanMessage = firstUserMessage.trim().replace(/\s+/g, ' ');
   const truncated = cleanMessage.length > 40
     ? cleanMessage.slice(0, 37) + '...'

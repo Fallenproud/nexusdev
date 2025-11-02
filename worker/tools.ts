@@ -1,6 +1,7 @@
 import type { WeatherResult, ErrorResult, CanvasContent } from './types';
 import { mcpManager } from './mcp-client';
 import type { ChatHandler } from './chat';
+import type { ChatAgent } from './agent';
 export type ToolResult = WeatherResult | { content: string } | ErrorResult | CanvasContent;
 interface SerpApiResponse {
   knowledge_graph?: { title?: string; description?: string; source?: { link?: string } };
@@ -66,6 +67,43 @@ const customTools = [
         required: ['description']
       }
     }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'list_files',
+      description: 'List all files in the current project workspace.',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'read_file',
+      description: 'Read the content of a specific file from the workspace.',
+      parameters: {
+        type: 'object',
+        properties: {
+          filename: { type: 'string', description: 'The full path of the file to read.' }
+        },
+        required: ['filename']
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'write_file',
+      description: 'Write or overwrite a file in the workspace with new content.',
+      parameters: {
+        type: 'object',
+        properties: {
+          filename: { type: 'string', description: 'The full path of the file to write.' },
+          content: { type: 'string', description: 'The new content for the file.' }
+        },
+        required: ['filename', 'content']
+      }
+    }
   }
 ];
 export async function getToolDefinitions() {
@@ -82,19 +120,16 @@ const createSearchUrl = (query: string, apiKey: string, numResults: number) => {
 };
 const formatSearchResults = (data: SerpApiResponse, query: string, numResults: number): string => {
   const results: string[] = [];
-  // Knowledge graph
   if (data.knowledge_graph?.title && data.knowledge_graph.description) {
     results.push(`**${data.knowledge_graph.title}**\n${data.knowledge_graph.description}`);
     if (data.knowledge_graph.source?.link) results.push(`Source: ${data.knowledge_graph.source.link}`);
   }
-  // Answer box
   if (data.answer_box) {
     const { answer, snippet, title, link } = data.answer_box;
     if (answer) results.push(`**Answer**: ${answer}`);
     else if (snippet) results.push(`**${title || 'Answer'}**: ${snippet}`);
     if (link) results.push(`Source: ${link}`);
   }
-  // Organic results
   if (data.organic_results?.length) {
     results.push('\n**Search Results:**');
     data.organic_results.slice(0, numResults).forEach((result, index) => {
@@ -106,7 +141,6 @@ const formatSearchResults = (data: SerpApiResponse, query: string, numResults: n
       }
     });
   }
-  // Local results
   if (data.local_results?.length) {
     results.push('\n**Local Results:**');
     data.local_results.slice(0, 3).forEach((result, index) => {
@@ -149,7 +183,7 @@ const extractTextFromHtml = (html: string): string => html
   .trim();
 async function fetchWebContent(url: string): Promise<string> {
   try {
-    new URL(url); // Validate
+    new URL(url);
     const response = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WebBot/1.0)' },
       signal: AbortSignal.timeout(10000)
@@ -165,7 +199,7 @@ async function fetchWebContent(url: string): Promise<string> {
     throw new Error(`Failed to fetch: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
-export async function executeTool(name: string, args: Record<string, unknown>, chatHandler: ChatHandler): Promise<ToolResult> {
+export async function executeTool(name: string, args: Record<string, unknown>, agent: ChatAgent, chatHandler: ChatHandler): Promise<ToolResult> {
   try {
     switch (name) {
       case 'get_weather':
@@ -216,6 +250,26 @@ export async function executeTool(name: string, args: Record<string, unknown>, c
           contentType: 'mermaid',
           content: mermaidSyntax,
         };
+      }
+      case 'list_files': {
+        const files = agent.state.files || {};
+        const fileList = Object.keys(files);
+        return { content: fileList.length > 0 ? `Files in workspace:\n- ${fileList.join('\n- ')}` : 'The workspace is empty.' };
+      }
+      case 'read_file': {
+        const filename = args.filename as string;
+        const files = agent.state.files || {};
+        if (filename in files) {
+          return { content: files[filename] };
+        }
+        return { error: `File not found: ${filename}` };
+      }
+      case 'write_file': {
+        const filename = args.filename as string;
+        const content = args.content as string;
+        const currentFiles = agent.state.files || {};
+        agent.setState({ ...agent.state, files: { ...currentFiles, [filename]: content } });
+        return { content: `File "${filename}" has been written successfully.` };
       }
       default: {
         const content = await mcpManager.executeTool(name, args);

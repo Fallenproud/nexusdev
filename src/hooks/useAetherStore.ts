@@ -14,6 +14,7 @@ interface AetherState {
   isFetchingTools: boolean;
   isFetchingSessions: boolean;
   canvasContent: CanvasContent | null;
+  files: Record<string, string>;
   actions: {
     fetchSessions: () => Promise<void>;
     switchSession: (sessionId: string) => Promise<void>;
@@ -24,6 +25,7 @@ interface AetherState {
     setModel: (model: string) => Promise<void>;
     fetchAvailableTools: () => Promise<void>;
     setCanvasContent: (content: CanvasContent | null) => Promise<void>;
+    fetchFiles: () => Promise<void>;
   };
 }
 const useAetherStoreImpl = create<AetherState>()(
@@ -38,6 +40,7 @@ const useAetherStoreImpl = create<AetherState>()(
     isFetchingTools: false,
     isFetchingSessions: false,
     canvasContent: null,
+    files: {},
     actions: {
       fetchSessions: async () => {
         set({ isFetchingSessions: true });
@@ -59,7 +62,8 @@ const useAetherStoreImpl = create<AetherState>()(
           state.streamingMessage = '';
           state.isProcessing = true;
           state.isFetchingSessions = true;
-          state.canvasContent = null; // Reset canvas on session switch
+          state.canvasContent = null;
+          state.files = {};
         });
         chatService.switchSession(sessionId);
         const response = await chatService.getMessages();
@@ -68,6 +72,7 @@ const useAetherStoreImpl = create<AetherState>()(
             state.messages = response.data!.messages;
             state.model = response.data!.model;
             state.canvasContent = response.data!.canvasContent || null;
+            state.files = response.data!.files || {};
           });
         } else {
           toast.error('Failed to load session messages.', { description: response.error });
@@ -147,6 +152,7 @@ const useAetherStoreImpl = create<AetherState>()(
             set((state) => {
               state.messages = response.data!.messages;
               state.canvasContent = response.data!.canvasContent || null;
+              state.files = response.data!.files || {};
             });
           } else {
             throw new Error(response.error || 'Failed to fetch updated messages');
@@ -195,6 +201,14 @@ const useAetherStoreImpl = create<AetherState>()(
         const response = await chatService.updateCanvasContent(content);
         if (!response.success) {
           toast.error('Failed to save canvas content', { description: response.error });
+        }
+      },
+      fetchFiles: async () => {
+        const response = await chatService.getFiles();
+        if (response.success && response.data) {
+          set({ files: response.data });
+        } else {
+          toast.error('Failed to fetch files.', { description: response.error });
         }
       },
     },

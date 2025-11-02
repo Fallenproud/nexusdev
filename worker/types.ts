@@ -36,6 +36,7 @@ export interface ChatState {
   model: string;
   streamingMessage?: string;
   canvasContent?: CanvasContent | null;
+  files: Record<string, string>;
 }
 export interface SessionInfo {
   id: string;

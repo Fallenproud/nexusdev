@@ -1,12 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAetherStore } from '@/hooks/useAetherStore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CodeBlock } from './CodeBlock';
 import ReactMarkdown from 'react-markdown';
-import { FileText, Code, Eye, GitMerge } from 'lucide-react';
+import { FileText, Code, Eye, GitMerge, Edit, Save, X } from 'lucide-react';
 import { MermaidDiagram } from './MermaidDiagram';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 export function CanvasPanel() {
   const canvasContent = useAetherStore((state) => state.canvasContent);
+  const setCanvasContent = useAetherStore((state) => state.actions.setCanvasContent);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
+  useEffect(() => {
+    if (canvasContent) {
+      setEditedContent(canvasContent.content);
+    } else {
+      setEditedContent('');
+    }
+  }, [canvasContent]);
+  const handleSave = () => {
+    if (canvasContent) {
+      setCanvasContent({ ...canvasContent, content: editedContent });
+      setIsEditing(false);
+      toast.success('Canvas content saved.');
+    }
+  };
+  const handleCancel = () => {
+    if (canvasContent) {
+      setEditedContent(canvasContent.content);
+    }
+    setIsEditing(false);
+  };
   const renderContent = () => {
     if (!canvasContent) {
       return (
@@ -18,6 +44,15 @@ export function CanvasPanel() {
           </p>
           <p className="text-xs mt-2">Try asking the AI to "generate a flowchart for a user login process".</p>
         </div>
+      );
+    }
+    if (isEditing) {
+      return (
+        <Textarea
+          value={editedContent}
+          onChange={(e) => setEditedContent(e.target.value)}
+          className="w-full h-full resize-none border-0 rounded-none focus-visible:ring-0 p-4 font-mono text-sm"
+        />
       );
     }
     switch (canvasContent.contentType) {
@@ -74,6 +109,24 @@ export function CanvasPanel() {
       <header className="flex items-center gap-2 p-3 border-b">
         {icon}
         <h2 className="text-lg font-display font-semibold">{title}</h2>
+        <div className="ml-auto">
+          {isEditing ? (
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleSave}>
+                <Save className="size-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCancel}>
+                <X className="size-4" />
+              </Button>
+            </div>
+          ) : (
+            canvasContent && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)}>
+                <Edit className="size-4" />
+              </Button>
+            )
+          )}
+        </div>
       </header>
       <ScrollArea className="flex-1">{renderContent()}</ScrollArea>
     </div>

@@ -4,40 +4,29 @@ import type { CanvasContent, ChatState } from './types';
 import { ChatHandler } from './chat';
 import { API_RESPONSES } from './config';
 import { createMessage, createStreamResponse, createEncoder } from './utils';
-/**
- * ChatAgent - Main agent class using Cloudflare Agents SDK
- *
- * This class extends the Agents SDK Agent class and handles all chat operations.
- */
 export class ChatAgent extends Agent<Env, ChatState> {
   private chatHandler?: ChatHandler;
-  // Initial state for new chat sessions
   initialState: ChatState = {
     messages: [],
     sessionId: crypto.randomUUID(),
     isProcessing: false,
     model: 'google-ai-studio/gemini-2.5-flash',
     canvasContent: null,
+    files: {},
   };
-  /**
-   * Initialize chat handler when agent starts
-   */
   async onStart(): Promise<void> {
     this.chatHandler = new ChatHandler(
-      this.env.CF_AI_BASE_URL ,
+      this.env.CF_AI_BASE_URL,
       this.env.CF_AI_API_KEY,
-      this.state.model
+      this.state.model,
+      this
     );
     console.log(`ChatAgent ${this.name} initialized with session ${this.state.sessionId}`);
   }
-  /**
-   * Handle incoming requests - clean routing with error handling
-   */
   async onRequest(request: Request): Promise<Response> {
     try {
       const url = new URL(request.url);
       const method = request.method;
-      // Route to appropriate handler
       if (method === 'GET' && url.pathname === '/messages') {
         return this.handleGetMessages();
       }
@@ -53,6 +42,9 @@ export class ChatAgent extends Agent<Env, ChatState> {
       if (method === 'POST' && url.pathname === '/canvas') {
         return this.handleCanvasUpdate(await request.json());
       }
+      if (method === 'GET' && url.pathname === '/files') {
+        return this.handleGetFiles();
+      }
       return Response.json({
         success: false,
         error: API_RESPONSES.NOT_FOUND
@@ -65,28 +57,26 @@ export class ChatAgent extends Agent<Env, ChatState> {
       }, { status: 500 });
     }
   }
-  /**
-   * Get current conversation messages
-   */
   private handleGetMessages(): Response {
     return Response.json({
       success: true,
       data: this.state
     });
   }
-  /**
-   * Process new chat message
-   */
+  private handleGetFiles(): Response {
+    return Response.json({
+      success: true,
+      data: this.state.files || {}
+    });
+  }
   private async handleChatMessage(body: { message: string; model?: string; stream?: boolean }): Promise<Response> {
     const { message, model, stream } = body;
-    // Validate input
     if (!message?.trim()) {
       return Response.json({
         success: false,
         error: API_RESPONSES.MISSING_MESSAGE
       }, { status: 400 });
     }
-    // Update model if provided
     if (model && model !== this.state.model) {
       this.setState({ ...this.state, model });
       this.chatHandler?.updateModel(model);
@@ -98,7 +88,6 @@ export class ChatAgent extends Agent<Env, ChatState> {
       isProcessing: true
     });
     try {
-      // Process message through chat handler
       if (!this.chatHandler) {
         throw new Error('Chat handler not initialized');
       }
@@ -106,7 +95,6 @@ export class ChatAgent extends Agent<Env, ChatState> {
         const { readable, writable } = new TransformStream();
         const writer = writable.getWriter();
         const encoder = createEncoder();
-        // Start processing in background
         (async () => {
           try {
             this.setState({ ...this.state, streamingMessage: '' });
@@ -129,12 +117,11 @@ export class ChatAgent extends Agent<Env, ChatState> {
             const canvasToolCall = response.toolCalls
               ?.slice()
               .reverse()
-              .find(tc => 
+              .find(tc =>
                 (tc.name === 'display_on_canvas' || tc.name === 'generate_diagram') &&
                 tc.result && typeof tc.result === 'object' && 'contentType' in tc.result && 'content' in tc.result
               );
             const newCanvasContent = canvasToolCall ? (canvasToolCall.result as CanvasContent) : this.state.canvasContent;
-            // Update state with final response
             this.setState({
               ...this.state,
               messages: [...this.state.messages, assistantMessage],
@@ -144,7 +131,6 @@ export class ChatAgent extends Agent<Env, ChatState> {
             });
           } catch (error) {
             console.error('Streaming error:', error);
-            // Write error to stream
             try {
               const errorMessage = 'Sorry, I encountered an error processing your request.';
               writer.write(encoder.encode(errorMessage));
@@ -168,7 +154,6 @@ export class ChatAgent extends Agent<Env, ChatState> {
         })();
         return createStreamResponse(readable);
       }
-      // Non-streaming response
       const response = await this.chatHandler.processMessage(
         message,
         this.state.messages
@@ -177,12 +162,11 @@ export class ChatAgent extends Agent<Env, ChatState> {
       const canvasToolCall = response.toolCalls
         ?.slice()
         .reverse()
-        .find(tc => 
+        .find(tc =>
           (tc.name === 'display_on_canvas' || tc.name === 'generate_diagram') &&
           tc.result && typeof tc.result === 'object' && 'contentType' in tc.result && 'content' in tc.result
         );
       const newCanvasContent = canvasToolCall ? (canvasToolCall.result as CanvasContent) : this.state.canvasContent;
-      // Update state with response
       this.setState({
         ...this.state,
         messages: [...this.state.messages, assistantMessage],
@@ -202,23 +186,18 @@ export class ChatAgent extends Agent<Env, ChatState> {
       }, { status: 500 });
     }
   }
-  /**
-   * Clear conversation history
-   */
   private handleClearMessages(): Response {
     this.setState({
       ...this.state,
       messages: [],
       canvasContent: null,
+      files: {},
     });
     return Response.json({
       success: true,
       data: this.state
     });
   }
-  /**
-   * Update selected AI model
-   */
   private handleModelUpdate(body: { model: string }): Response {
     const { model } = body;
     this.setState({ ...this.state, model });
@@ -228,9 +207,6 @@ export class ChatAgent extends Agent<Env, ChatState> {
       data: this.state
     });
   }
-  /**
-   * Update canvas content
-   */
   private handleCanvasUpdate(body: { content: CanvasContent | null }): Response {
     this.setState({ ...this.state, canvasContent: body.content });
     return Response.json({ success: true, data: this.state });

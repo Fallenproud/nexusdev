@@ -2,26 +2,19 @@ import OpenAI from 'openai';
 import type { Message, ToolCall } from './types';
 import { getToolDefinitions, executeTool } from './tools';
 import { ChatCompletionMessageFunctionToolCall } from 'openai/resources/index.mjs';
-/**
- * ChatHandler - Handles all chat-related operations
- *
- * This class encapsulates the OpenAI integration and tool execution logic,
- * making it easy for AI developers to understand and extend the functionality.
- */
+import type { ChatAgent } from './agent';
 export class ChatHandler {
   public client: OpenAI;
   public model: string;
-  constructor(aiGatewayUrl: string, apiKey: string, model: string) {
+  private agent: ChatAgent;
+  constructor(aiGatewayUrl: string, apiKey: string, model: string, agent: ChatAgent) {
     this.client = new OpenAI({
       baseURL: aiGatewayUrl,
       apiKey: apiKey
     });
-    console.log("BASE URL", aiGatewayUrl);
     this.model = model;
+    this.agent = agent;
   }
-  /**
-   * Process a user message and generate AI response with optional tool usage
-   */
   async processMessage(
     message: string,
     conversationHistory: Message[],
@@ -33,7 +26,6 @@ export class ChatHandler {
     const messages = this.buildConversationMessages(message, conversationHistory);
     const toolDefinitions = await getToolDefinitions();
     if (onChunk) {
-      // Use streaming with callback
       const stream = await this.client.chat.completions.create({
         model: this.model,
         messages,
@@ -41,11 +33,9 @@ export class ChatHandler {
         tool_choice: 'auto',
         max_completion_tokens: 16000,
         stream: true,
-        // reasoning_effort: 'low'
       });
       return this.handleStreamResponse(stream, message, conversationHistory, onChunk);
     }
-    // Non-streaming response
     const completion = await this.client.chat.completions.create({
       model: this.model,
       messages,
@@ -71,7 +61,6 @@ export class ChatHandler {
           fullContent += delta.content;
           onChunk(delta.content);
         }
-        // Accumulate tool calls from streaming chunks
         if (delta?.tool_calls) {
           for (let i = 0; i < delta.tool_calls.length; i++) {
             const deltaToolCall = delta.tool_calls[i];
@@ -85,7 +74,6 @@ export class ChatHandler {
                 }
               };
             } else {
-              // Append to existing tool call
               if (deltaToolCall.function?.name && !accumulatedToolCalls[i].function.name) {
                 accumulatedToolCalls[i].function.name = deltaToolCall.function.name;
               }
@@ -130,15 +118,12 @@ export class ChatHandler {
     );
     return { content: finalResponse, toolCalls };
   }
-  /**
-   * Execute all tool calls from OpenAI response
-   */
   private async executeToolCalls(openAiToolCalls: ChatCompletionMessageFunctionToolCall[]): Promise<ToolCall[]> {
     return Promise.all(
       openAiToolCalls.map(async (tc) => {
         try {
           const args = tc.function.arguments ? JSON.parse(tc.function.arguments) : {};
-          const result = await executeTool(tc.function.name, args, this);
+          const result = await executeTool(tc.function.name, args, this.agent, this);
           return {
             id: tc.id,
             name: tc.function.name,
@@ -157,9 +142,6 @@ export class ChatHandler {
       })
     );
   }
-  /**
-   * Generate final response after tool execution
-   */
   private async generateToolResponse(
     userMessage: string,
     history: Message[],
@@ -187,9 +169,6 @@ export class ChatHandler {
     });
     return followUpCompletion.choices[0]?.message?.content || 'Tool results processed successfully.';
   }
-  /**
-   * Build conversation messages for OpenAI API
-   */
   private buildConversationMessages(userMessage: string, history: Message[]) {
     return [
       {
@@ -203,9 +182,6 @@ export class ChatHandler {
       { role: 'user' as const, content: userMessage }
     ];
   }
-  /**
-   * Update the model for this chat handler
-   */
   updateModel(newModel: string): void {
     this.model = newModel;
   }

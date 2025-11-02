@@ -5,12 +5,13 @@ import { AetherSidebar } from '@/components/AetherSidebar';
 import { ChatPanel } from '@/components/ChatPanel';
 import { useAetherStore } from '@/hooks/useAetherStore';
 import { Button } from '@/components/ui/button';
-import { PanelLeftClose, PanelRightClose, PanelLeftOpen, Menu, Info } from 'lucide-react';
+import { PanelLeftClose, PanelRightClose, PanelLeftOpen, Menu, Info, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/Logo';
 import { RightPanelTabs } from '@/components/RightPanelTabs';
+import { FilePanel } from '@/components/FilePanel';
 export function HomePage() {
   const fetchSessions = useAetherStore((state) => state.actions.fetchSessions);
   const switchSession = useAetherStore((state) => state.actions.switchSession);
@@ -25,6 +26,7 @@ export function HomePage() {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isContextOpen, setIsContextOpen] = useState(false);
+  const [isFilePanelOpen, setIsFilePanelOpen] = useState(false);
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
@@ -68,17 +70,30 @@ export function HomePage() {
               </SheetContent>
             </Sheet>
             <Logo />
-            <Sheet open={isContextOpen} onOpenChange={setIsContextOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Info className="size-5" />
-                  <span className="sr-only">Open Context</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="p-0 w-full max-w-xs">
-                <RightPanelTabs />
-              </SheetContent>
-            </Sheet>
+            <div className="flex items-center">
+              <Sheet open={isFilePanelOpen} onOpenChange={setIsFilePanelOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Folder className="size-5" />
+                    <span className="sr-only">Open Files</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="p-0 w-full max-w-xs">
+                  <FilePanel />
+                </SheetContent>
+              </Sheet>
+              <Sheet open={isContextOpen} onOpenChange={setIsContextOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Info className="size-5" />
+                    <span className="sr-only">Open Context</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="p-0 w-full max-w-xs">
+                  <RightPanelTabs />
+                </SheetContent>
+              </Sheet>
+            </div>
           </header>
           <main className="flex-1 overflow-hidden">
             <ChatPanel showHeader={false} />
