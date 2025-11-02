@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bot, User, Wrench } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { renderToolCall } from '@/lib/chat';
 import type { Message } from '../../worker/types';
+import { CodeBlock } from './CodeBlock';
 interface ChatMessageProps {
   message: Message;
 }
@@ -15,7 +15,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={cn('flex items-start gap-3', isUser ? 'justify-end' : 'justify-start')}
+      className={cn('flex items-start gap-3 w-full', isUser ? 'justify-end' : 'justify-start')}
     >
       {!isUser && (
         <div className="flex-shrink-0 size-8 rounded-full bg-indigo flex items-center justify-center">
@@ -30,22 +30,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
             : 'bg-muted text-foreground rounded-bl-lg'
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
-        {message.toolCalls && message.toolCalls.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-current/20">
-            <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-              <Wrench className="size-3" />
-              <span>Tools used:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {message.toolCalls.map((tool, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs font-normal">
-                  {renderToolCall(tool)}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+        <ReactMarkdown
+          className="prose prose-sm dark:prose-invert prose-p:whitespace-pre-wrap prose-p:my-0 prose-headings:my-2 prose-ul:my-2 prose-ol:my-2 max-w-none"
+          components={{
+            code({ node, inline, className, children, ...props }) {
+              return (
+                <CodeBlock inline={inline} className={className} {...props}>
+                  {children}
+                </CodeBlock>
+              );
+            },
+          }}
+        >
+          {message.content}
+        </ReactMarkdown>
       </div>
       {isUser && (
         <div className="flex-shrink-0 size-8 rounded-full bg-secondary flex items-center justify-center">

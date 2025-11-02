@@ -9,18 +9,13 @@ export function HomePage() {
   const switchSession = useNexusStore((state) => state.switchSession);
   const sessions = useNexusStore((state) => state.sessions);
   const activeSessionId = useNexusStore((state) => state.activeSessionId);
+  // This effect runs once on mount to fetch the initial list of sessions.
   useEffect(() => {
-    const initialize = async () => {
-      await fetchSessions();
-      // After fetching, if there's no active session but there are sessions available,
-      // switch to the first one.
-      if (!activeSessionId && sessions.length > 0) {
-        switchSession(sessions[0].id);
-      }
-    };
-    initialize();
-  }, [fetchSessions]); // Only run on mount
-  // This effect ensures that if sessions load and there's no active one, the first is selected.
+    fetchSessions();
+  }, [fetchSessions]);
+  // This effect ensures that if sessions load and there's no active one,
+  // the first session is selected. It runs whenever the list of sessions
+  // or the active session ID changes.
   useEffect(() => {
     if (!activeSessionId && sessions.length > 0) {
       switchSession(sessions[0].id);
