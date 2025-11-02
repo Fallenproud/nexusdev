@@ -9,10 +9,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { Logo } from './Logo';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ModelSelector } from './ModelSelector';
+import { Separator } from './ui/separator';
 interface AetherSidebarProps {
   isCollapsed: boolean;
+  onSessionChange?: () => void;
+  showModelSelector?: boolean;
 }
-export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
+export function AetherSidebar({ isCollapsed, onSessionChange, showModelSelector }: AetherSidebarProps) {
   const sessions = useAetherStore((state) => state.sessions);
   const activeSessionId = useAetherStore((state) => state.activeSessionId);
   const isFetchingSessions = useAetherStore((state) => state.isFetchingSessions);
@@ -21,6 +25,10 @@ export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
   );
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
+  const handleSwitchSession = (sessionId: string) => {
+    switchSession(sessionId);
+    onSessionChange?.();
+  };
   const handleEdit = (sessionId: string, currentTitle: string) => {
     setEditingSessionId(sessionId);
     setNewTitle(currentTitle);
@@ -66,7 +74,7 @@ export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
                         variant={activeSessionId === session.id ? 'secondary' : 'ghost'}
                         size="icon"
                         className="w-9 h-9"
-                        onClick={() => switchSession(session.id)}
+                        onClick={() => handleSwitchSession(session.id)}
                       >
                         <MessageSquare className="size-4" />
                       </Button>
@@ -114,11 +122,9 @@ export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
                 key={session.id}
                 className={cn(
                   'group flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors',
-                  activeSessionId === session.id
-                    ? 'bg-primary/20 text-primary'
-                    : 'hover:bg-secondary'
+                  activeSessionId === session.id ? 'bg-primary/20 text-primary' : 'hover:bg-secondary'
                 )}
-                onClick={() => switchSession(session.id)}
+                onClick={() => handleSwitchSession(session.id)}
               >
                 <div className="flex items-start gap-2 overflow-hidden">
                   <MessageSquare className="size-4 mt-0.5 flex-shrink-0" />
@@ -201,6 +207,11 @@ export function AetherSidebar({ isCollapsed }: AetherSidebarProps) {
           </div>
         )}
       </ScrollArea>
+      {showModelSelector && (
+        <div className="mt-auto pt-3 border-t">
+          <ModelSelector />
+        </div>
+      )}
     </div>
   );
 }

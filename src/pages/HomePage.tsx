@@ -6,8 +6,11 @@ import { ChatPanel } from '@/components/ChatPanel';
 import { ContextPanel } from '@/components/ContextPanel';
 import { useAetherStore } from '@/hooks/useAetherStore';
 import { Button } from '@/components/ui/button';
-import { PanelLeftClose, PanelRightClose, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftClose, PanelRightClose, PanelLeftOpen, Menu, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Logo } from '@/components/Logo';
 export function HomePage() {
   const fetchSessions = useAetherStore((state) => state.actions.fetchSessions);
   const switchSession = useAetherStore((state) => state.actions.switchSession);
@@ -19,6 +22,9 @@ export function HomePage() {
   });
   const contextPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null);
   const sidebarPanelRef = useRef<React.ElementRef<typeof ResizablePanel>>(null);
+  const isMobile = useIsMobile();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isContextOpen, setIsContextOpen] = useState(false);
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
@@ -41,10 +47,53 @@ export function HomePage() {
       sidebarPanelRef.current?.collapse();
     }
   };
+  if (isMobile) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col h-screen w-screen p-2 sm:p-4 overflow-hidden">
+          <header className="flex items-center justify-between p-2 border-b mb-2">
+            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="size-5" />
+                  <span className="sr-only">Open Sessions</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-full max-w-xs">
+                <AetherSidebar
+                  isCollapsed={false}
+                  onSessionChange={() => setIsSidebarOpen(false)}
+                  showModelSelector={true}
+                />
+              </SheetContent>
+            </Sheet>
+            <Logo />
+            <Sheet open={isContextOpen} onOpenChange={setIsContextOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Info className="size-5" />
+                  <span className="sr-only">Open Context</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="p-0 w-full max-w-xs">
+                <ContextPanel />
+              </SheetContent>
+            </Sheet>
+          </header>
+          <main className="flex-1 overflow-hidden">
+            <ChatPanel showHeader={false} />
+          </main>
+        </div>
+      </AppLayout>
+    );
+  }
   return (
     <AppLayout>
       <div className="h-screen w-screen p-4 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full w-full rounded-lg border bg-black/20 backdrop-blur-md ring-1 ring-inset ring-white/10 shadow-soft-glow">
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="h-full w-full rounded-lg border bg-black/20 backdrop-blur-md ring-1 ring-inset ring-white/10 shadow-soft-glow"
+        >
           <ResizablePanel
             ref={sidebarPanelRef}
             defaultSize={25}
@@ -59,7 +108,7 @@ export function HomePage() {
             <AetherSidebar isCollapsed={panelCollapseState.sidebar} />
           </ResizablePanel>
           <ResizableHandle withHandle className="relative">
-             <Button
+            <Button
               size="icon"
               variant="ghost"
               className={cn(

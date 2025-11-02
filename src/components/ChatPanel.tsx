@@ -9,7 +9,10 @@ import { ModelSelector } from './ModelSelector';
 import { Toaster } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-export function ChatPanel() {
+interface ChatPanelProps {
+  showHeader?: boolean;
+}
+export function ChatPanel({ showHeader = true }: ChatPanelProps) {
   const messages = useAetherStore((state) => state.messages);
   const streamingMessage = useAetherStore((state) => state.streamingMessage);
   const isProcessing = useAetherStore((state) => state.isProcessing);
@@ -57,10 +60,12 @@ export function ChatPanel() {
   };
   return (
     <div className="flex flex-col h-full bg-muted/50 rounded-lg border">
-      <header className="flex items-center justify-between p-3 border-b">
-        <h2 className="text-lg font-display font-semibold">Conversation</h2>
-        <ModelSelector />
-      </header>
+      {showHeader && (
+        <header className="flex items-center justify-between p-3 border-b">
+          <h2 className="text-lg font-display font-semibold">Conversation</h2>
+          <ModelSelector />
+        </header>
+      )}
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-6 space-y-6">
           {messages.length === 0 && !isProcessing && (
